@@ -122,7 +122,7 @@ def get_gpu_flops_available(state: State):
 
     if gpu_flops_available is None:
         warnings.warn(
-            f'gpu_flop count not found for {dev_name=} with precision: {state.precision.value}; ' +\
+            f'gpu_flop count not found for {dev_name} with precision: {state.precision.value}; ' +\
             f'MFU cannot be calculated and reported. gpu_flops_available can be manually' +\
             f'overridden by setting gpu_flops_available in SpeedMonitorMFU()'
         )
