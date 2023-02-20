@@ -8,7 +8,7 @@ from setuptools import setup
 
 _PACKAGE_NAME = 'mosaicml-examples'
 _PACKAGE_DIR = 'examples'
-_EXAMPLE_SUBDIRS = ('resnet_cifar', 'resnet_imagenet', 'deeplab', 'bert', 'llm',
+_EXAMPLE_SUBDIRS = ('resnet_cifar', 'resnet_imagenet', 'resnet_tiny_imagenet', 'deeplab', 'bert', 'llm',
                     'stable_diffusion')
 _REPO_REAL_PATH = os.path.dirname(os.path.realpath(__file__))
 _PACKAGE_REAL_PATH = os.path.join(_REPO_REAL_PATH, _PACKAGE_DIR)

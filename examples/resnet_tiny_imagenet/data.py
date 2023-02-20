@@ -12,7 +12,6 @@ from composer.datasets.utils import NormalizationFn, pil_image_collate
 from composer.utils import dist
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.datasets import ImageFolder
 
 from sunyata.pytorch.data.tiny_imagenet import TinyImageNet
 
