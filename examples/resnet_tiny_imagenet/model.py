@@ -3,6 +3,7 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from composer.metrics import CrossEntropy
 from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
@@ -12,7 +13,9 @@ from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    return - (input * target).mean()
+    target = torch.argmax(target, dim=1)
+    return F.nll_loss(input, target)
+    # return - (input * target).mean()
 
 
 class ConvMixer(nn.Module):
