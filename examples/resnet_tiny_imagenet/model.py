@@ -4,6 +4,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from composer.loss import binary_cross_entropy_with_logits, soft_cross_entropy
 from composer.metrics import CrossEntropy
 from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
@@ -91,6 +92,7 @@ class BayesConvMixer(ConvMixer):
 def build_composer_resnet(
     *,
     model_name: str = 'convmixer',
+    loss_name: str = "nll_loss",
     hidden_dim: int,
     kernel_size: int,
     patch_size: int,
@@ -123,9 +125,19 @@ def build_composer_resnet(
     train_metrics = Accuracy()
     val_metrics = MetricCollection([CrossEntropy(), Accuracy()])
 
+    # Choose loss function: either cross entropy or binary cross entropy
+    if loss_name == 'cross_entropy':
+        loss_fn = soft_cross_entropy
+    elif loss_name == 'binary_cross_entropy':
+        loss_fn = binary_cross_entropy_with_logits
+    else:
+        raise ValueError(
+            f"loss_name='{loss_name}' but must be either ['cross_entropy', 'binary_cross_entropy']"
+        )
+
     # Wrapper function to convert a image classification PyTorch model into a Composer model
     composer_model = ComposerClassifier(model,
                                         train_metrics=train_metrics,
                                         val_metrics=val_metrics,
-                                        loss_fn=nll_loss)
+                                        loss_fn=loss_fn)
     return composer_model
