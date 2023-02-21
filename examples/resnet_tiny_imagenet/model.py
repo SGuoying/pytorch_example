@@ -110,14 +110,14 @@ def build_composer_resnet(
         raise ValueError("Only support convmixer and convmixer-bayes till now.")
 
     # Specify model initialization
-    # def weight_init(w: torch.nn.Module):
-    #     if isinstance(w, torch.nn.Linear) or isinstance(w, torch.nn.Conv2d):
-    #         torch.nn.init.kaiming_normal_(w.weight)
-    #     if isinstance(w, torch.nn.BatchNorm2d):
-    #         w.weight.data = torch.rand(w.weight.data.shape)
-    #         w.bias.data = torch.zeros_like(w.bias.data)
+    def weight_init(w: torch.nn.Module):
+        if isinstance(w, torch.nn.Linear) or isinstance(w, torch.nn.Conv2d):
+            torch.nn.init.kaiming_normal_(w.weight)
+        if isinstance(w, torch.nn.BatchNorm2d):
+            w.weight.data = torch.rand(w.weight.data.shape)
+            w.bias.data = torch.zeros_like(w.bias.data)
 
-    # model.apply(weight_init)
+    model.apply(weight_init)
 
     # Performance metrics to log other than training loss
     train_metrics = Accuracy()
