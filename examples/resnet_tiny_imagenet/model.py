@@ -74,10 +74,11 @@ class BayesConvMixer(ConvMixer):
         super().__init__(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
 
         # log_prior = torch.zeros(1, num_classes)
-        # self.register_buffer('log_prior', log_prior) 
-        self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
+        log_prior = - torch.log(torch.ones(1, num_classes) * num_classes)
+        self.register_buffer('log_prior', log_prior) 
+        # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         batch_size, _, _, _ = x.shape
         log_prior = self.log_prior.repeat(batch_size, 1)
 
@@ -85,7 +86,7 @@ class BayesConvMixer(ConvMixer):
         for layer in self.layers:
             x = layer(x)
             logits = self.digup(x) 
-            log_prior = log_bayesian_iteration(log_prior, logits)
+            log_prior = F.log_softmax(log_prior + logits) # log_bayesian_iteration(log_prior, logits)
         
         return log_prior
 
