@@ -73,8 +73,8 @@ class BayesConvMixer(ConvMixer):
     ):
         super().__init__(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
 
-        # log_prior = torch.zeros(1, num_classes)
-        log_prior = - torch.log(torch.ones(1, num_classes) * num_classes)
+        log_prior = torch.zeros(1, num_classes)
+        # log_prior = - torch.log(torch.ones(1, num_classes) * num_classes)
         self.register_buffer('log_prior', log_prior) 
         # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
 
