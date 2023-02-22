@@ -86,7 +86,7 @@ class BayesConvMixer(ConvMixer):
         for layer in self.layers:
             x = layer(x)
             logits = self.digup(x) 
-            log_prior = F.log_softmax(log_prior + logits) # log_bayesian_iteration(log_prior, logits)
+            log_prior = F.log_softmax(log_prior + logits, dim=-1) # log_bayesian_iteration(log_prior, logits)
         
         return log_prior
 
