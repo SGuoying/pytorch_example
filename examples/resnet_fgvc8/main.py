@@ -105,6 +105,7 @@ def main(config):
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
+    optimizer=build_optimizer(config.optimizer,composer_model)
     #optimizer = DecoupledSGDW(composer_model.parameters(),
                               #lr=config.optimizer.lr,
                               #momentum=config.optimizer.momentum,
