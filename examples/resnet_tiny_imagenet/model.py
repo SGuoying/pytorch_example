@@ -1,6 +1,7 @@
 # Copyright 2022 MosaicML Examples authors
 # SPDX-License-Identifier: Apache-2.0
 
+from math import sqrt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -77,6 +78,7 @@ class BayesConvMixer(ConvMixer):
         # log_prior = - torch.log(torch.ones(1, num_classes) * num_classes)
         self.register_buffer('log_prior', log_prior) 
         # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
+        self.sqrt_num_classes = sqrt(num_classes)
 
     def forward(self, x: torch.Tensor):
         batch_size, _, _, _ = x.shape
@@ -86,7 +88,7 @@ class BayesConvMixer(ConvMixer):
         for layer in self.layers:
             x = layer(x)
             logits = self.digup(x) 
-            log_prior = F.log_softmax(log_prior + logits, dim=-1) # log_bayesian_iteration(log_prior, logits)
+            log_prior = F.log_softmax((log_prior + logits)/self.sqrt_num_classes, dim=-1) # log_bayesian_iteration(log_prior, logits)
         
         return log_prior
 
