@@ -10,7 +10,7 @@ import torch
 from composer.core import DataSpec
 from composer.datasets.utils import NormalizationFn, pil_image_collate
 from composer.utils import dist
-#from streaming import StreamingDataset
+from streaming import StreamingDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder, VisionDataset
@@ -109,7 +109,13 @@ def build_imagenet_dataspec(
             transforms.RandomResizedCrop(crop_size,
                                          scale=(0.08, 1.0),
                                          ratio=(0.75, 4.0 / 3.0)),
-            transforms.RandomHorizontalFlip()
+            transforms.RandomHorizontalFlip(P=0.5),
+            transforms.RandomVerticalFlip(p=0.5),
+            transforms.RandAugment(num_ops=2, magnitude=12),
+            transforms.ColorJitter(0.3, 0.3, 0.3),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+
         ]
     else:
         transform.append(transforms.CenterCrop(crop_size))
@@ -153,7 +159,7 @@ def check_dataloader():
     data.py s3://my-bucket/my-dir/data /tmp/path/to/local` to test streaming.
     """
     data_path = sys.argv[1]
-    batch_size = 3
+    batch_size = 2
     local = None
     is_streaming = len(sys.argv) > 2
     if is_streaming:
