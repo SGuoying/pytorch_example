@@ -10,7 +10,9 @@ from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 
 from sunyata.pytorch.arch.base import Residual
-from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
+from sunyata.pytorch_lightning.base import BaseModule
+from sunyata.pytorch.arch.foldnet import FoldNet, FoldNetCfg, FoldNetRepeat, FoldNetRepeat2, Block2
+#from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -19,47 +21,52 @@ def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     # return - (input * target).mean()
 
 
-class ConvMixer(nn.Module):
+class FoldNetCfg(nn.module):
     def __init__(
         self,
-        hidden_dim: int,
-        kernel_size: int,
-        patch_size: int,
-        num_layers: int,
-        num_classes: int,
+        hidden_dim: int=128,
+        kernel_size: int=5,
+        patch_size: int=7,
+        fold_num: int=2,
+        num_layers: int=32,
+        num_classes: int=12,
+        drop_rate: float = 0.
+        expansion: int = 1,
+        layer_scaler_init_value: float = 1e-6,
     ):
         super().__init__()
 
-        self.layers = nn.Sequential(*[
-            nn.Sequential(
-                Residual(nn.Sequential(
-                    nn.Conv2d(hidden_dim, hidden_dim, kernel_size, groups=hidden_dim, padding="same"),
-                    nn.GELU(),
-                    nn.BatchNorm2d(hidden_dim)
-                )),
-                nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1),
+         self.layers = nn.Sequential(*[
+            Residual(nn.Sequential(
+                nn.Conv2d(cfg.hidden_dim, cfg.hidden_dim, cfg.kernel_size, groups=cfg.hidden_dim, padding="same"),
                 nn.GELU(),
-                nn.BatchNorm2d(hidden_dim)
-            ) for _ in range(num_layers)
+                nn.BatchNorm2d(cfg.hidden_dim),
+                nn.Conv2d(cfg.hidden_dim, cfg.hidden_dim, kernel_size=1),
+                nn.GELU(),
+                nn.BatchNorm2d(cfg.hidden_dim)
+            )
+            ) for _ in range(cfg.num_layers)
         ])
 
-        self.embed = nn.Sequential(
-            nn.Conv2d(3, hidden_dim, kernel_size=patch_size, stride=patch_size),
+       self.embed = nn.Sequential(
+            nn.Conv2d(3, cfg.hidden_dim, kernel_size=cfg.patch_size, stride=cfg.patch_size),
             nn.GELU(),
-            nn.BatchNorm2d(hidden_dim),
+            nn.BatchNorm2d(cfg.hidden_dim),
         )
 
-        self.digup = nn.Sequential(
+         self.digup = nn.Sequential(
             nn.AdaptiveAvgPool2d((1,1)),
             nn.Flatten(),
-            nn.Linear(hidden_dim, num_classes)
+            nn.Linear(cfg.hidden_dim, cfg.num_classes)
         )
+         self.cfg = cfg
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x):
         x = self.embed(x)
         x= self.layers(x)
         x= self.digup(x)
         return x
+
 
 
 class BayesConvMixer(ConvMixer):
