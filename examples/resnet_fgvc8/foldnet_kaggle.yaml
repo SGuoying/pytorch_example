@@ -77,7 +77,7 @@ hot:
   max_duration: 270ep
 
 # Save checkpoint parameters
-save_folder:   convmixer                 # e.g. './{run_name}/ckpt' (local) or 's3://mybucket/mydir/{run_name}/ckpt' (remote)
+save_folder:   foldnet                 # e.g. './{run_name}/ckpt' (local) or 's3://mybucket/mydir/{run_name}/ckpt' (remote)
 save_interval: 1ep             # Interval to checkpoint based on time string
 save_num_checkpoints_to_keep: 1 # Cleans up checkpoints saved locally only!
 
