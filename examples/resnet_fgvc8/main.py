@@ -14,7 +14,7 @@ from composer.algorithms import (EMA, SAM, BlurPool, ChannelsLast, ColOut,
                                  RandAugment, StochasticDepth)
 from composer.callbacks import LRMonitor, MemoryMonitor, SpeedMonitor
 from composer.loggers import ProgressBarLogger, WandBLogger
-from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW
+from composer.optim import CosineAnnealingWithWarmupScheduler
 from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
 from model import build_composer_resnet
@@ -105,11 +105,10 @@ def main(config):
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
-    optimizer=build_optimizer(config.optimizer,composer_model)
-    #optimizer = DecoupledSGDW(composer_model.parameters(),
-                              #lr=config.optimizer.lr,
-                              #momentum=config.optimizer.momentum,
-                              #weight_decay=config.optimizer.weight_decay)
+    optimizer = DecoupledSGDW(composer_model.parameters(),
+                              lr=config.optimizer.lr,
+                              momentum=config.optimizer.momentum,
+                              weight_decay=config.optimizer.weight_decay)
 
     # Learning rate scheduler: LR warmup for 8 epochs, then cosine decay for the rest of training
     lr_scheduler = CosineAnnealingWithWarmupScheduler(
