@@ -1,18 +1,18 @@
-run_name: convmixer # Name of the  training run used for checkpointing and other logging
+run_name: foldnet # Name of the  training run used for checkpointing and other logging
 is_train: true             # Trains the model if true, otherwise runs evaluation
 seed: 17                   # Random seed
 max_duration: 90ep         # Duration to train specified as a Time string
-grad_accum: 2           # Amount of gradient accumulation, 'auto' means Composer will choose the optimal value
+grad_accum: 2         # Amount of gradient accumulation, 'auto' means Composer will choose the optimal value
 
 # Model
 model:
-  name: convmixer           # Name of the ResNet model to train either resnet{18, 34, 50, 101, 152}
-  hidden_dim: 256
+  name: foldnet           # Name of the ResNet model to train either resnet{18, 34, 50, 101, 152}
+  hidden_dim: 128
   kernel_size: 5
-  patch_size: 2
-  num_layers: 12
+  patch_size: 7
+  num_layers: 32
   loss_name: # cross_entropy # Name of the loss function either 'cross_entropy' or 'binary_cross_entropy'
-  num_classes: 1000        # Number of classes in the classification task
+  num_classes: 12        # Number of classes in the classification task
 
 # Training Dataset Parameters
 train_dataset:
@@ -77,7 +77,7 @@ hot:
   max_duration: 270ep
 
 # Save checkpoint parameters
-save_folder:   convmixer                 # e.g. './{run_name}/ckpt' (local) or 's3://mybucket/mydir/{run_name}/ckpt' (remote)
+save_folder:                  # e.g. './{run_name}/ckpt' (local) or 's3://mybucket/mydir/{run_name}/ckpt' (remote)
 save_interval: 1ep             # Interval to checkpoint based on time string
 save_num_checkpoints_to_keep: 1 # Cleans up checkpoints saved locally only!
 
