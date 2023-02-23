@@ -35,11 +35,11 @@ class ConvMixer(nn.Module):
                 Residual(nn.Sequential(
                     nn.Conv2d(hidden_dim, hidden_dim, kernel_size, groups=hidden_dim, padding="same"),
                     nn.GELU(),
+                    nn.BatchNorm2d(hidden_dim),
+                    nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1),
+                    nn.GELU(),
                     nn.BatchNorm2d(hidden_dim)
                 )),
-                nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1),
-                nn.GELU(),
-                nn.BatchNorm2d(hidden_dim)
             ) for _ in range(num_layers)
         ])
 

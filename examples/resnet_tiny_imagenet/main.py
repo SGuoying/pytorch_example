@@ -17,7 +17,6 @@ from composer.loggers import ProgressBarLogger, WandBLogger
 from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW
 from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
-from examples.common.builders import build_optimizer
 from model import build_composer_resnet
 from omegaconf import OmegaConf
 
@@ -106,11 +105,10 @@ def main(cfg):
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
-    optimizer = build_optimizer(cfg.optimizer, composer_model)
-    # optimizer = DecoupledSGDW(composer_model.parameters(),
-    #                           lr=cfg.optimizer.lr,
-    #                           momentum=cfg.optimizer.momentum,
-    #                           weight_decay=cfg.optimizer.weight_decay)
+    optimizer = DecoupledSGDW(composer_model.parameters(),
+                              lr=cfg.optimizer.lr,
+                              momentum=cfg.optimizer.momentum,
+                              weight_decay=cfg.optimizer.weight_decay)
 
     # Learning rate scheduler: LR warmup for 8 epochs, then cosine decay for the rest of training
     lr_scheduler = CosineAnnealingWithWarmupScheduler(
