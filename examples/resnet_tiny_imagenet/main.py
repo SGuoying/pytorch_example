@@ -17,6 +17,7 @@ from composer.loggers import ProgressBarLogger, WandBLogger
 from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW
 from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
+from examples.common.builders import build_optimizer
 from model import build_composer_resnet
 from omegaconf import OmegaConf
 
@@ -32,25 +33,25 @@ def build_logger(name: str, kwargs: Dict):
         raise ValueError(f'Not sure how to build logger: {name}')
 
 
-def main(config):
-    reproducibility.seed_all(config.seed)
-    if config.grad_accum == 'auto' and not torch.cuda.is_available():
+def main(cfg):
+    reproducibility.seed_all(cfg.seed)
+    if cfg.grad_accum == 'auto' and not torch.cuda.is_available():
         raise ValueError(
             'grad_accum="auto" requires training with a GPU; please specify grad_accum as an integer'
         )
 
     # If using a recipe, update the config's loss name, eval and train resize sizes, and the max duration
-    if config.recipe_name:
-        if config.recipe_name not in ['mild', 'medium', 'hot']:
+    if cfg.recipe_name:
+        if cfg.recipe_name not in ['mild', 'medium', 'hot']:
             raise ValueError(
-                f'recipe_name={config.recipe_name}, but must be one of ["mild", "medium", "hot"]'
+                f'recipe_name={cfg.recipe_name}, but must be one of ["mild", "medium", "hot"]'
             )
-        recipe_config = config[config.recipe_name]
-        config.update(recipe_config)
+        recipe_config = cfg[cfg.recipe_name]
+        cfg.update(recipe_config)
 
     # Divide batch sizes by number of devices if running multi-gpu training
-    train_batch_size = config.train_dataset.batch_size
-    eval_batch_size = config.eval_dataset.batch_size
+    train_batch_size = cfg.train_dataset.batch_size
+    eval_batch_size = cfg.eval_dataset.batch_size
     if dist.get_world_size():
         train_batch_size //= dist.get_world_size()
         eval_batch_size //= dist.get_world_size()
@@ -58,16 +59,16 @@ def main(config):
     # Train dataset
     print('Building train dataloader')
     train_dataspec = build_imagenet_dataspec(
-        data_path=config.train_dataset.path,
-        is_streaming=config.train_dataset.is_streaming,
+        data_path=cfg.train_dataset.path,
+        is_streaming=cfg.train_dataset.is_streaming,
         batch_size=train_batch_size,
-        local=config.train_dataset.local,
+        local=cfg.train_dataset.local,
         is_train=True,
         drop_last=True,
         shuffle=True,
-        resize_size=config.train_dataset.resize_size,
-        crop_size=config.train_dataset.crop_size,
-        num_workers=config.train_dataset.num_workers,
+        resize_size=cfg.train_dataset.resize_size,
+        crop_size=cfg.train_dataset.crop_size,
+        num_workers=cfg.train_dataset.num_workers,
         pin_memory=True,
         persistent_workers=True)
 
@@ -76,16 +77,16 @@ def main(config):
     # Validation dataset
     print('Building evaluation dataloader')
     eval_dataspec = build_imagenet_dataspec(
-        data_path=config.eval_dataset.path,
-        is_streaming=config.train_dataset.is_streaming,
+        data_path=cfg.eval_dataset.path,
+        is_streaming=cfg.train_dataset.is_streaming,
         batch_size=eval_batch_size,
-        local=config.eval_dataset.local,
+        local=cfg.eval_dataset.local,
         is_train=False,
         drop_last=False,
         shuffle=False,
-        resize_size=config.eval_dataset.resize_size,
-        crop_size=config.eval_dataset.crop_size,
-        num_workers=config.eval_dataset.num_workers,
+        resize_size=cfg.eval_dataset.resize_size,
+        crop_size=cfg.eval_dataset.crop_size,
+        num_workers=cfg.eval_dataset.num_workers,
         pin_memory=True,
         persistent_workers=True)
     print('Built evaluation dataloader\n')
@@ -93,26 +94,27 @@ def main(config):
     # Instantiate torchvision ResNet model
     print('Building Composer model')
     composer_model = build_composer_resnet(
-        model_name=config.model.name,
-        loss_name=config.model.loss_name,
-        hidden_dim=config.model.hidden_dim,
-        kernel_size=config.model.kernel_size,
-        patch_size=config.model.patch_size,
-        num_layers=config.model.num_layers,
-        num_classes=config.model.num_classes,
+        model_name=cfg.model.name,
+        loss_name=cfg.model.loss_name,
+        hidden_dim=cfg.model.hidden_dim,
+        kernel_size=cfg.model.kernel_size,
+        patch_size=cfg.model.patch_size,
+        num_layers=cfg.model.num_layers,
+        num_classes=cfg.model.num_classes,
     )
     print('Built Composer model\n')
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
-    optimizer = DecoupledSGDW(composer_model.parameters(),
-                              lr=config.optimizer.lr,
-                              momentum=config.optimizer.momentum,
-                              weight_decay=config.optimizer.weight_decay)
+    optimizer = build_optimizer(cfg.optimizer, composer_model)
+    # optimizer = DecoupledSGDW(composer_model.parameters(),
+    #                           lr=cfg.optimizer.lr,
+    #                           momentum=cfg.optimizer.momentum,
+    #                           weight_decay=cfg.optimizer.weight_decay)
 
     # Learning rate scheduler: LR warmup for 8 epochs, then cosine decay for the rest of training
     lr_scheduler = CosineAnnealingWithWarmupScheduler(
-        t_warmup=config.scheduler.t_warmup, alpha_f=config.scheduler.alpha_f)
+        t_warmup=cfg.scheduler.t_warmup, alpha_f=cfg.scheduler.alpha_f)
     print('Built optimizer and learning rate scheduler\n')
 
     # Callbacks for logging
@@ -129,7 +131,7 @@ def main(config):
     # Recipes for training ResNet architectures on ImageNet in order of increasing training time and accuracy
     # To learn about individual methods, check out "Methods Overview" in our documentation: https://docs.mosaicml.com/
     print('Building algorithm recipes')
-    if config.recipe_name == 'mild':
+    if cfg.recipe_name == 'mild':
         algorithms = [
             # BlurPool(),
             ChannelsLast(),
@@ -139,7 +141,7 @@ def main(config):
             #                     finetune_fraction=0.2),
             # LabelSmoothing(smoothing=0.08),
         ]
-    elif config.recipe_name == 'medium':
+    elif cfg.recipe_name == 'medium':
         algorithms = [
             BlurPool(),
             ChannelsLast(),
@@ -151,7 +153,7 @@ def main(config):
             MixUp(alpha=0.2),
             SAM(rho=0.5, interval=10),
         ]
-    elif config.recipe_name == 'hot':
+    elif cfg.recipe_name == 'hot':
         algorithms = [
             BlurPool(),
             ChannelsLast(),
@@ -175,7 +177,7 @@ def main(config):
 
     loggers = [
         build_logger(name, logger_config)
-        for name, logger_config in config.loggers.items()
+        for name, logger_config in cfg.loggers.items()
     ]
 
     # Create the Trainer!
@@ -183,7 +185,7 @@ def main(config):
     device = 'gpu' if torch.cuda.is_available() else 'cpu'
     precision = 'amp' if device == 'gpu' else 'fp32'  # Mixed precision for fast training when using a GPU
     trainer = Trainer(
-        run_name=config.run_name,
+        run_name=cfg.run_name,
         model=composer_model,
         train_dataloader=train_dataspec,
         eval_dataloader=eval_dataspec,
@@ -192,25 +194,25 @@ def main(config):
         schedulers=lr_scheduler,
         algorithms=algorithms,
         loggers=loggers,
-        max_duration=config.max_duration,
+        max_duration=cfg.max_duration,
         callbacks=[speed_monitor, lr_monitor, memory_monitor],
-        save_folder=config.save_folder,
-        save_interval=config.save_interval,
-        save_num_checkpoints_to_keep=config.save_num_checkpoints_to_keep,
-        save_overwrite=config.get('save_overwrite', False),
-        load_path=config.load_path,
+        save_folder=cfg.save_folder,
+        save_interval=cfg.save_interval,
+        save_num_checkpoints_to_keep=cfg.save_num_checkpoints_to_keep,
+        save_overwrite=cfg.get('save_overwrite', False),
+        load_path=cfg.load_path,
         device=device,
         precision=precision,
-        grad_accum=config.grad_accum,
-        seed=config.seed)
+        grad_accum=cfg.grad_accum,
+        seed=cfg.seed)
     print('Built Trainer\n')
 
     print('Logging config')
-    log_config(config)
+    log_config(cfg)
 
     print('Run evaluation')
     trainer.eval()
-    if config.is_train:
+    if cfg.is_train:
         print('Train!')
         trainer.fit()
 
