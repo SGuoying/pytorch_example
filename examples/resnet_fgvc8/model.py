@@ -30,9 +30,6 @@ class FoldNetCfg(nn.module):
         fold_num: int=2,
         num_layers: int=32,
         num_classes: int=12,
-        drop_rate: float = 0.
-        expansion: int = 1,
-        layer_scaler_init_value: float = 1e-6,
     ):
         super().__init__()
 
@@ -100,20 +97,21 @@ class BayesConvMixer(ConvMixer):
 
 def build_composer_resnet(
     *,
-    model_name: str = 'convmixer',
+    model_name: str = 'foldnet',
     loss_name: str = "nll_loss",
     hidden_dim: int,
     kernel_size: int,
+    fold_num: int,
     patch_size: int,
     num_layers: int,
-    num_classes: int = 1000    
+    num_classes: int = 12   
 ):
     """Helper function to build a Composer ResNet model.
 
     Args:
         num_classes (int, optional): Number of classes in the classification task. Default: ``1000``.
     """
-    if model_name == 'convmixer':
+    if model_name == 'foldnet':
         model = ConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     elif model_name == 'convmixer-bayes':
         model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
