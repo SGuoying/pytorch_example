@@ -10,7 +10,7 @@ import torch
 from composer.core import DataSpec
 from composer.datasets.utils import NormalizationFn, pil_image_collate
 from composer.utils import dist
-from streaming import StreamingDataset
+#from streaming import StreamingDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder, VisionDataset
