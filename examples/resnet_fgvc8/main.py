@@ -1,7 +1,7 @@
 # Copyright 2022 MosaicML Examples authors
 # SPDX-License-Identifier: Apache-2.0
 
-"""Example script to train a ResNet model on Tiny ImageNet."""
+"""Example script to train a ResNet model on ImageNet."""
 
 import os
 import sys
@@ -67,7 +67,7 @@ def main(config):
         shuffle=True,
         resize_size=config.train_dataset.resize_size,
         crop_size=config.train_dataset.crop_size,
-        num_workers=config.train_dataset.num_workers,
+         num_workers=config.train_dataset.num_workers,
         pin_memory=True,
         persistent_workers=True)
 
@@ -85,14 +85,14 @@ def main(config):
         shuffle=False,
         resize_size=config.eval_dataset.resize_size,
         crop_size=config.eval_dataset.crop_size,
-        num_workers=config.eval_dataset.num_workers,
+         num_workers=config.eval_dataset.num_workers,
         pin_memory=True,
         persistent_workers=True)
     print('Built evaluation dataloader\n')
 
     # Instantiate torchvision ResNet model
     print('Building Composer model')
-    composer_model = build_composer_resnet(
+    composer_model = build_composer_resnet( 
         model_name=config.model.name,
         loss_name=config.model.loss_name,
         hidden_dim=config.model.hidden_dim,
@@ -105,10 +105,11 @@ def main(config):
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
-    optimizer = DecoupledSGDW(composer_model.parameters(),
-                              lr=config.optimizer.lr,
-                              momentum=config.optimizer.momentum,
-                              weight_decay=config.optimizer.weight_decay)
+    optimizer=build_optimizer(config.optimizer,composer_model)
+    #optimizer = DecoupledSGDW(composer_model.parameters(),
+                              #lr=config.optimizer.lr,
+                              #momentum=config.optimizer.momentum,
+                              #weight_decay=config.optimizer.weight_decay)
 
     # Learning rate scheduler: LR warmup for 8 epochs, then cosine decay for the rest of training
     lr_scheduler = CosineAnnealingWithWarmupScheduler(
@@ -131,13 +132,13 @@ def main(config):
     print('Building algorithm recipes')
     if config.recipe_name == 'mild':
         algorithms = [
-            # BlurPool(),
+            #BlurPool(),
             ChannelsLast(),
-            # EMA(half_life='100ba', update_interval='20ba'),
-            # ProgressiveResizing(initial_scale=0.5,
-            #                     delay_fraction=0.4,
-            #                     finetune_fraction=0.2),
-            # LabelSmoothing(smoothing=0.08),
+            #EMA(half_life='100ba', update_interval='20ba'),
+            #ProgressiveResizing(initial_scale=0.5,
+            #                    delay_fraction=0.4,
+            #                    finetune_fraction=0.2),
+            #LabelSmoothing(smoothing=0.08),
         ]
     elif config.recipe_name == 'medium':
         algorithms = [
