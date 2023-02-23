@@ -105,10 +105,10 @@ def main(config):
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
-    optimizer = DecoupledSGDW(composer_model.parameters(),
-                              lr=config.optimizer.lr,
-                              momentum=config.optimizer.momentum,
-                              weight_decay=config.optimizer.weight_decay)
+    #optimizer = DecoupledSGDW(composer_model.parameters(),
+                              #lr=config.optimizer.lr,
+                              #momentum=config.optimizer.momentum,
+                              #weight_decay=config.optimizer.weight_decay)
 
     # Learning rate scheduler: LR warmup for 8 epochs, then cosine decay for the rest of training
     lr_scheduler = CosineAnnealingWithWarmupScheduler(
