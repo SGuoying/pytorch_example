@@ -133,7 +133,7 @@ def build_imagenet_dataspec(
                                     transform=transform)  # type: ignore
         sampler = None
     else:
-        dataset = ImageFolder(os.path.join(data_path, split), transform,download=True)
+        dataset = ImageFolder(os.path.join(data_path, split), transform)
         sampler = dist.get_sampler(dataset,
                                    drop_last=drop_last,
                                    shuffle=shuffle)
