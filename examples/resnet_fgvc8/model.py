@@ -10,7 +10,7 @@ from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 
 from sunyata.pytorch.arch.base import Residual
-from sunyata.pytorch_lightning.base import BaseModule
+# from sunyata.pytorch_lightning.base import BaseModule
 from sunyata.pytorch.arch.foldnet import FoldNet, FoldNetCfg, FoldNetRepeat, FoldNetRepeat2, Block2
 #from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
