@@ -33,7 +33,7 @@ class FoldNetCfg(nn.module):
     ):
         super().__init__()
 
-         self.layers = nn.Sequential(*[
+        self.layers = nn.Sequential(*[
             Residual(nn.Sequential(
                 nn.Conv2d(cfg.hidden_dim, cfg.hidden_dim, cfg.kernel_size, groups=cfg.hidden_dim, padding="same"),
                 nn.GELU(),
@@ -45,18 +45,18 @@ class FoldNetCfg(nn.module):
             ) for _ in range(cfg.num_layers)
         ])
 
-       self.embed = nn.Sequential(
+        self.embed = nn.Sequential(
             nn.Conv2d(3, cfg.hidden_dim, kernel_size=cfg.patch_size, stride=cfg.patch_size),
             nn.GELU(),
             nn.BatchNorm2d(cfg.hidden_dim),
         )
 
-         self.digup = nn.Sequential(
+        self.digup = nn.Sequential(
             nn.AdaptiveAvgPool2d((1,1)),
             nn.Flatten(),
             nn.Linear(cfg.hidden_dim, cfg.num_classes)
         )
-         self.cfg = cfg
+        self.cfg = cfg
 
     def forward(self, x):
         x = self.embed(x)
