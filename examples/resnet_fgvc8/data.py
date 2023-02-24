@@ -11,8 +11,8 @@ from composer.core import DataSpec
 from composer.datasets.utils import NormalizationFn, pil_image_collate
 from composer.utils import dist
 from streaming import StreamingDataset
-from torch.utils.data import DataLoader
-from torchvision import transforms
+from torch.utils.data import DataLoader  #数据加载
+from torchvision import transforms  #数据转换
 from torchvision.datasets import ImageFolder, VisionDataset
 
 # Scale by 255 since the collate `pil_image_collate` results in images in range 0-255
@@ -55,7 +55,7 @@ class StreamingImageNet(StreamingDataset, VisionDataset):
                          shuffle=shuffle,
                          batch_size=batch_size)
 
-    def __getitem__(self, idx: int) -> Any:
+    def __getitem__(self, idx: int) -> Any:  #对训练数据进行读取
         sample = super().__getitem__(idx)
         image = sample['x']
         if image.mode != 'RGB':
@@ -120,7 +120,7 @@ def build_imagenet_dataspec(
     else:
         transform.append(transforms.CenterCrop(crop_size))
 
-    transform = transforms.Compose(transform)
+    transform = transforms.Compose(transform) 
 
     device_transform_fn = NormalizationFn(mean=IMAGENET_CHANNEL_MEAN,
                                           std=IMAGENET_CHANNEL_STD)
@@ -133,7 +133,7 @@ def build_imagenet_dataspec(
                                     transform=transform)  # type: ignore
         sampler = None
     else:
-        dataset = ImageFolder(os.path.join(data_path, split), transform)
+        dataset = ImageFolder(os.path.join(data_path, split), transform,download=True)
         sampler = dist.get_sampler(dataset,
                                    drop_last=drop_last,
                                    shuffle=shuffle)
