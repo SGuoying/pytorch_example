@@ -10,13 +10,15 @@ model:
   hidden_dim: 128
   kernel_size: 5
   patch_size: 7
+  fold_num: 2
   num_layers: 32
+
   loss_name: cross_entropy # Name of the loss function either 'cross_entropy' or 'binary_cross_entropy'
   num_classes: 12        # Number of classes in the classification task
 
 # Training Dataset Parameters
 train_dataset:
-  is_streaming: false                    # Whether or not your data is in a remote location (e.g. a S3 bucket)
+  is_streaming: True                    # Whether or not your data is in a remote location (e.g. a S3 bucket)
   path: /kaggle/input/FGVC8      # Path to S3 bucket if streaming, otherwise path to local data directory
   local:  # Local cache when streaming data
   resize_size:                        # Training image resize size before crop, -1 means no resize
@@ -49,7 +51,7 @@ loggers:
   progress_bar: {}
   wandb:     # Uncomment and fill below arguments to use WandB logger
     entity: songxs # Name of WandB entity, usually username or organization name
-    project: convmixer_tiny_imagenet # Name of WandB project
+    project: foldnet_fgvc8 # Name of WandB project
     group:   # Name of WandB group
 
 # null for baseline or for recipe, either ["mild", "medium", "hot"] in order of increasing training time and accuracy
