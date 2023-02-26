@@ -10,7 +10,7 @@ from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 
 from sunyata.pytorch.arch.base import Residual
-from sunyata.pytorch_lightning.base import BaseModule
+# from sunyata.pytorch_lightning.base import BaseModule
 from sunyata.pytorch.arch.foldnet import FoldNet, FoldNetCfg, FoldNetRepeat, FoldNetRepeat2, Block2
 #from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
@@ -19,80 +19,6 @@ def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     target = torch.argmax(target, dim=1)
     return F.nll_loss(input, target)
     # return - (input * target).mean()
-
-
-class FoldNetCfg(nn.module):
-    def __init__(
-        self,
-        hidden_dim: int=128,
-        kernel_size: int=5,
-        patch_size: int=7,
-        fold_num: int=2,
-        num_layers: int=32,
-        num_classes: int=12,
-    ):
-        super().__init__()
-
-         self.layers = nn.Sequential(*[
-            Residual(nn.Sequential(
-                nn.Conv2d(cfg.hidden_dim, cfg.hidden_dim, cfg.kernel_size, groups=cfg.hidden_dim, padding="same"),
-                nn.GELU(),
-                nn.BatchNorm2d(cfg.hidden_dim),
-                nn.Conv2d(cfg.hidden_dim, cfg.hidden_dim, kernel_size=1),
-                nn.GELU(),
-                nn.BatchNorm2d(cfg.hidden_dim)
-            )
-            ) for _ in range(cfg.num_layers)
-        ])
-
-       self.embed = nn.Sequential(
-            nn.Conv2d(3, cfg.hidden_dim, kernel_size=cfg.patch_size, stride=cfg.patch_size),
-            nn.GELU(),
-            nn.BatchNorm2d(cfg.hidden_dim),
-        )
-
-         self.digup = nn.Sequential(
-            nn.AdaptiveAvgPool2d((1,1)),
-            nn.Flatten(),
-            nn.Linear(cfg.hidden_dim, cfg.num_classes)
-        )
-         self.cfg = cfg
-
-    def forward(self, x):
-        x = self.embed(x)
-        x= self.layers(x)
-        x= self.digup(x)
-        return x
-
-
-
-class BayesConvMixer(ConvMixer):
-    def __init__(
-        self,
-        hidden_dim: int,
-        kernel_size: int,
-        patch_size: int,
-        num_layers: int,
-        num_classes: int,
-    ):
-        super().__init__(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-
-        log_prior = torch.zeros(1, num_classes)
-        # log_prior = - torch.log(torch.ones(1, num_classes) * num_classes)
-        self.register_buffer('log_prior', log_prior) 
-        # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
-
-    def forward(self, x: torch.Tensor):
-        batch_size, _, _, _ = x.shape
-        log_prior = self.log_prior.repeat(batch_size, 1)
-
-        x = self.embed(x)
-        for layer in self.layers:
-            x = layer(x)
-            logits = self.digup(x) 
-            log_prior = F.log_softmax(log_prior + logits, dim=-1) # log_bayesian_iteration(log_prior, logits)
-        
-        return log_prior
 
 
 def build_composer_resnet(
@@ -112,9 +38,9 @@ def build_composer_resnet(
         num_classes (int, optional): Number of classes in the classification task. Default: ``1000``.
     """
     if model_name == 'foldnet':
-        model = ConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-    elif model_name == 'convmixer-bayes':
-        model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
+        model = FoldNetRepeat(FoldNetCfg(hidden_dim, kernel_size, fold_num,patch_size, num_layers, num_classes))
+    # elif model_name == 'convmixer-bayes':
+    #     model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     else:
         raise ValueError("Only support convmixer and convmixer-bayes till now.")
 
