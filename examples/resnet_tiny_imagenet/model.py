@@ -188,6 +188,8 @@ def build_composer_resnet(
         loss_fn = soft_cross_entropy
     elif loss_name == 'binary_cross_entropy':
         loss_fn = binary_cross_entropy_with_logits
+    elif loss_name == 'nll_loss':
+        loss_fn = nll_loss
     else:
         raise ValueError(
             f"loss_name='{loss_name}' but must be either ['cross_entropy', 'binary_cross_entropy']"
