@@ -15,7 +15,7 @@ from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    target = torch.argmax(target, dim=1)
+    # target = torch.argmax(target, dim=1)
     return F.nll_loss(input, target)
     # return - (input * target).mean()
 
@@ -79,7 +79,7 @@ class BayesConvMixer(ConvMixer):
         self.register_buffer('log_prior', log_prior) 
         # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
         # self.sqrt_num_classes = sqrt(num_classes)
-        # self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
+        self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
         # self.logits_layer_norm = nn.LayerNorm(num_classes)
 
     def forward(self, x: torch.Tensor):
@@ -92,7 +92,54 @@ class BayesConvMixer(ConvMixer):
             logits = self.digup(x) 
             log_prior = log_prior + logits
             # log_prior = self.logits_layer_norm(log_prior)
-            log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) # + self.logits_bias
+            log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
+            log_prior = F.log_softmax(log_prior, dim=-1) # log_bayesian_iteration(log_prior, logits)
+        
+        return log_prior
+
+
+class BayesConvMixer2(ConvMixer):
+    def __init__(
+        self,
+        hidden_dim: int,
+        kernel_size: int,
+        patch_size: int,
+        num_layers: int,
+        num_classes: int,
+    ):
+        super().__init__(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
+
+        log_prior = torch.zeros(1, num_classes)
+        # log_prior = - torch.log(torch.ones(1, num_classes) * num_classes)
+        self.register_buffer('log_prior', log_prior) 
+        # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
+        # self.sqrt_num_classes = sqrt(num_classes)
+        self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
+        # self.logits_layer_norm = nn.LayerNorm(num_classes)
+        self.digup = None
+        num_stages = 4
+        self.digups = nn.ModuleList([
+            nn.Sequential(
+                nn.AdaptiveAvgPool2d((1, 1)),
+                nn.Flatten(),
+                nn.Linear(hidden_dim, num_classes),
+            )
+            for _ in range(num_stages)
+        ])
+        self.stage_depth = num_layers // num_stages if num_layers % num_stages == 0 else num_layers // num_stages + 1
+
+
+    def forward(self, x: torch.Tensor):
+        batch_size, _, _, _ = x.shape
+        log_prior = self.log_prior.repeat(batch_size, 1)
+
+        x = self.embed(x)
+        for i, layer in enumerate(self.layers):
+            x = layer(x)
+            logits = self.digups[i // self.stage_depth](x) 
+            log_prior = log_prior + logits
+            # log_prior = self.logits_layer_norm(log_prior)
+            log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
             log_prior = F.log_softmax(log_prior, dim=-1) # log_bayesian_iteration(log_prior, logits)
         
         return log_prior
@@ -117,6 +164,8 @@ def build_composer_resnet(
         model = ConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     elif model_name == 'convmixer-bayes':
         model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
+    elif model_name == 'convmixer-bayes-2':
+        model = BayesConvMixer2(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     else:
         raise ValueError("Only support convmixer and convmixer-bayes till now.")
 
@@ -139,6 +188,8 @@ def build_composer_resnet(
         loss_fn = soft_cross_entropy
     elif loss_name == 'binary_cross_entropy':
         loss_fn = binary_cross_entropy_with_logits
+    elif loss_name == 'nll_loss':
+        loss_fn = nll_loss
     else:
         raise ValueError(
             f"loss_name='{loss_name}' but must be either ['cross_entropy', 'binary_cross_entropy']"
