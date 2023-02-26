@@ -15,7 +15,7 @@ from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    target = torch.argmax(target, dim=1)
+    # target = torch.argmax(target, dim=1)
     return F.nll_loss(input, target)
     # return - (input * target).mean()
 
