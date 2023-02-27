@@ -99,7 +99,7 @@ def main(config):
         kernel_size=config.model.kernel_size,
         patch_size=config.model.patch_size,
         num_layers=config.model.num_layers,
-        fold_num=config.model.num_layers,
+        fold_num=config.model.fold_num,
         num_classes=config.model.num_classes,
     )
     print('Built Composer model\n')
