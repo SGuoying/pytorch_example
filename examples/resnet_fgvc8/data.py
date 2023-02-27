@@ -67,7 +67,7 @@ class StreamingImageNet(StreamingDataset, VisionDataset):
 
 
 def build_imagenet_dataspec(
-    data_path: str,
+    data_path: int,
     is_streaming: bool,
     batch_size: int,
     local: Optional[str] = None,
