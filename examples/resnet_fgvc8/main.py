@@ -14,7 +14,7 @@ from composer.algorithms import (EMA, SAM, BlurPool, ChannelsLast, ColOut,
                                  RandAugment, StochasticDepth)
 from composer.callbacks import LRMonitor, MemoryMonitor, SpeedMonitor
 from composer.loggers import ProgressBarLogger, WandBLogger
-from composer.optim import CosineAnnealingWithWarmupScheduler
+from composer.optim import CosineAnnealingWithWarmupScheduler,DecoupledSGDW
 from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
 from model import build_composer_resnet
