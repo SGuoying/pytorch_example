@@ -7,7 +7,8 @@ from composer.metrics import CrossEntropy
 from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 from torchvision.models import resnet
-
+from torchvision.models.resnet import Bottleneck
+from sunyata.pytorch.arch.bayes.resnet import BayesResNet
 
 def build_composer_resnet(model_name: str = 'resnet50',
                           loss_name: str = 'cross_entropy',
@@ -21,8 +22,11 @@ def build_composer_resnet(model_name: str = 'resnet50',
             Default: ``'cross_entropy'``.
         num_classes (int, optional): Number of classes in the classification task. Default: ``1000``.
     """
-    model_fn = getattr(resnet, model_name)
-    model = model_fn(num_classes=num_classes, groups=1, width_per_group=64)
+    if model_name.startswith('bayes'):
+        model = BayesResNet(Bottleneck, [3, 4, 6, 3])
+    else:
+        model_fn = getattr(resnet, model_name)
+        model = model_fn(num_classes=num_classes, groups=1, width_per_group=64)
 
     # Specify model initialization
     def weight_init(w: torch.nn.Module):
