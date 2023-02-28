@@ -39,7 +39,7 @@ def build_composer_resnet(
         num_classes (int, optional): Number of classes in the classification task. Default: ``1000``.
     """
     if model_name == 'foldnet':
-        model = FoldNetRepeat(FoldNetCfg(block,hidden_dim, kernel_size, fold_num,patch_size, num_layers, num_classes))
+        model = FoldNetRepeat(FoldNetCfg(block=Block2,hidden_dim=hidden_dim,kernel_size=kernel_size,fold_num=fold_num, patch_size=patch_size, num_layers=num_classes, num_classes=num_classes))
     # elif model_name == 'convmixer-bayes':
     #     model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     else:
