@@ -57,31 +57,17 @@ def main(config):
 
     # Train dataset
     print('Building train dataloader')
-    # train_dataspec = build_imagenet_dataspec(
-    #     data_path=config.train_dataset.path,
-    #     is_streaming=config.train_dataset.is_streaming,
-    #     batch_size=train_batch_size,
-    #     local=config.train_dataset.local,
-    #     is_train=True,
-    #     drop_last=True,
-    #     shuffle=True,
-    #     resize_size=config.train_dataset.resize_size,
-    #     crop_size=config.train_dataset.crop_size,
-    #     num_workers=config.train_dataset.num_workers,
-    #     pin_memory=True,
-    #     persistent_workers=True)
-    
-    train_dataspec =build_imagenet_dataspec(
-        data_path=config.eval_dataset.path,
+    train_dataspec = build_imagenet_dataspec(
+        data_path=config.train_dataset.path,
         is_streaming=config.train_dataset.is_streaming,
-        batch_size=eval_batch_size,
-        local=config.eval_dataset.local,
-        is_train=False,
-        drop_last=False,
-        shuffle=False,
-        resize_size=config.eval_dataset.resize_size,
-        crop_size=config.eval_dataset.crop_size,
-        num_workers=config.eval_dataset.num_workers,
+        batch_size=train_batch_size,
+        local=config.train_dataset.local,
+        is_train=True,
+        drop_last=True,
+        shuffle=True,
+        resize_size=config.train_dataset.resize_size,
+        crop_size=config.train_dataset.crop_size,
+        num_workers=config.train_dataset.num_workers,
         pin_memory=True,
         persistent_workers=True)
 
