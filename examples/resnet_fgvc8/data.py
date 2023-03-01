@@ -106,9 +106,9 @@ def build_imagenet_dataspec(
     # Add split specific transformations
     if is_train:
         transform += [
-            #transforms.RandomResizedCrop(crop_size,
-            #                             scale=(0.08, 1.0),
-            #                             ratio=(0.75, 4.0 / 3.0)),
+            transforms.RandomResizedCrop(crop_size,
+                                         scale=(0.08, 1.0),
+                                         ratio=(0.75, 4.0 / 3.0)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandAugment(num_ops=2, magnitude=12),
