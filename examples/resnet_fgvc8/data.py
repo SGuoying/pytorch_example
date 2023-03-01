@@ -113,8 +113,8 @@ def build_imagenet_dataspec(
             transforms.RandomVerticalFlip(),
             transforms.RandAugment(num_ops=2, magnitude=12),
             transforms.ColorJitter(0.3, 0.3, 0.3),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            #transforms.ToTensor(),
+            #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 
         ]
     # else:
