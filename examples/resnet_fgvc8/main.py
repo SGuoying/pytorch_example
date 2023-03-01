@@ -67,7 +67,7 @@ def main(config):
         shuffle=True,
         resize_size=config.train_dataset.resize_size,
         crop_size=config.train_dataset.crop_size,
-        num_workers=config.train_dataset.num_workers,  #此处待修改
+        num_workers=2,  #此处待修改config.train_dataset.num_workers
         pin_memory=True,
         persistent_workers=True)
 
@@ -85,7 +85,7 @@ def main(config):
         shuffle=False,
         resize_size=config.eval_dataset.resize_size,
         crop_size=config.eval_dataset.crop_size,
-        num_workers=config.eval_dataset.num_workers,   #此处待修改
+        num_workers=2,   #此处待修改config.eval_dataset.num_workers
         pin_memory=True,
         persistent_workers=True)
     print('Built evaluation dataloader\n')
