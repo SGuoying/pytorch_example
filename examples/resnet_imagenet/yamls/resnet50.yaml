@@ -18,6 +18,7 @@ train_dataset:
   resize_size: -1                       # Training image resize size before crop, -1 means no resize
   crop_size: 224                        # Training image crop size
   batch_size: 2048                      # Training dataloader batch size per device
+  num_workers: 14
 
 # Validation Dataset Parameters
 eval_dataset:
@@ -27,6 +28,7 @@ eval_dataset:
   resize_size: 256                      # Evaluation image resize size before crop
   crop_size: 224                        # Evaluation image crop size
   batch_size: 2048                      # Evaluation dataloader batch size per device
+  num_workers: 14
 
 # Optimizer Parameters
 optimizer:
