@@ -159,7 +159,7 @@ def check_dataloader():
     data.py s3://my-bucket/my-dir/data /tmp/path/to/local` to test streaming.
     """
     data_path = sys.argv[1]
-    batch_size = 128      #此处待修改
+    batch_size = 2     #此处待修改
     local = None
     is_streaming = len(sys.argv) > 2
     if is_streaming:
