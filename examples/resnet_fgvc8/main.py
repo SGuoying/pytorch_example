@@ -95,7 +95,6 @@ def main(config):
     composer_model = build_composer_resnet( 
         model_name=config.model.name,
         loss_name=config.model.loss_name,
-        block=config.model.Block2,
         hidden_dim=config.model.hidden_dim,
         kernel_size=config.model.kernel_size,
         patch_size=config.model.patch_size,
