@@ -9,7 +9,7 @@ model:
   name: foldnet           # Name of the ResNet model to train either resnet{18, 34, 50, 101, 152}
   hidden_dim: 128
   kernel_size: 5
-  patch_size: 7
+  patch_size: 8
   fold_num: 2
   num_layers: 32
 
@@ -19,20 +19,20 @@ model:
 # Training Dataset Parameters
 train_dataset:
   is_streaming: false                    # Whether or not your data is in a remote location (e.g. a S3 bucket)
-  path: /kaggle/input/all-fgvc8/all_fgvc8   # Path to S3 bucket if streaming, otherwise path to local data directory
+  path: /kaggle/input/fgvc8-256/fgvc8_images  # Path to S3 bucket if streaming, otherwise path to local data directory
   local:  # Local cache when streaming data
   resize_size: -1                       # Training image resize size before crop, -1 means no resize
-  crop_size:  224                      # Training image crop size
+  crop_size:  256                      # Training image crop size
   batch_size: 128                      # Training dataloader batch size per device
   num_workers: 2
 
 # Validation Dataset Parameters
 eval_dataset:
   is_streaming: false                    # Whether or not your data is in a remote location (e.g. a S3 bucket)
-  path: /kaggle/input/all-fgvc8/all_fgvc8    # S3 bucket if streaming, otherwise path to local data
+  path: /kaggle/input/fgvc8-256/fgvc8_images   # S3 bucket if streaming, otherwise path to local data
   local:  # Local cache when streaming data
   resize_size: -1         # Evaluation image resize size before crop
-  crop_size:  224                    # Evaluation image crop size
+  crop_size:  256                    # Evaluation image crop size
   batch_size: 128                      # Evaluation dataloader batch size per device
   num_workers: 2
 

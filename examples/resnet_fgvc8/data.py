@@ -75,7 +75,7 @@ def build_imagenet_dataspec(
     drop_last: bool = True,
     shuffle: bool = True,
     resize_size: int = -1,
-    crop_size: int = 224,
+    crop_size: int = 256,
     **dataloader_kwargs,
 ) -> DataSpec:
     """Builds an ImageNet dataloader for either local or remote data.
@@ -159,7 +159,7 @@ def check_dataloader():
     data.py s3://my-bucket/my-dir/data /tmp/path/to/local` to test streaming.
     """
     data_path = sys.argv[1]
-    batch_size = 128
+    batch_size = 128      #此处待修改
     local = None
     is_streaming = len(sys.argv) > 2
     if is_streaming:
