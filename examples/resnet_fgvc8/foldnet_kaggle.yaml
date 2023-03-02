@@ -10,8 +10,8 @@ model:
   hidden_dim: 128
   kernel_size: 5
   patch_size: 8
-  fold_num: 3
-  num_layers: 32
+  fold_num: 2
+  num_layers: 48
 
   loss_name: cross_entropy # Name of the loss function either 'cross_entropy' or 'binary_cross_entropy'
   num_classes: 12        # Number of classes in the classification task
