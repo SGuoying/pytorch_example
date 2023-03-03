@@ -93,9 +93,14 @@ def main(config):
 
     # Instantiate torchvision ResNet model
     print('Building Composer model')
-    composer_model = build_composer_resnet(model_name=config.model.name,
-                                           loss_name=config.model.loss_name,
-                                           num_classes=config.model.num_classes)
+    composer_model = build_composer_resnet(
+        model_name=config.model.name,
+        loss_name=config.model.loss_name,
+        hidden_dim=config.model.hidden_dim,
+        kernel_size=config.model.kernel_size,
+        patch_size=config.model.patch_size,
+        num_classes=config.model.num_classes,
+                                           )
     print('Built Composer model\n')
 
     # Optimizer
