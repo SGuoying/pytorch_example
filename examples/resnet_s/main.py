@@ -1,7 +1,7 @@
 # Copyright 2022 MosaicML Examples authors
 # SPDX-License-Identifier: Apache-2.0
 
-"""Example script to train a ResNet model on ImageNet."""
+"""Example script to train a convmixer net model on ImageNet."""
 
 import os
 import sys
