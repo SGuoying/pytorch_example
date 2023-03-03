@@ -1,4 +1,4 @@
-run_name: resnet_imagenet # Name of the  training run used for checkpointing and other logging
+run_name: convmixer # Name of the  training run used for checkpointing and other logging
 is_train: true             # Trains the model if true, otherwise runs evaluation
 seed: 17                   # Random seed
 max_duration: 90ep         # Duration to train specified as a Time string
@@ -6,29 +6,33 @@ grad_accum: auto           # Amount of gradient accumulation, 'auto' means Compo
 
 # Model
 model:
-  name: bayes_resnet50           # Name of the ResNet model to train either resnet{18, 34, 50, 101, 152}
+  name: convmixer           # Name of the ResNet model to train either resnet{18, 34, 50, 101, 152}
+  hidden_dim: 256
+  kernel_size: 5
+  patch_size: 2
+  num_layers: 12
   loss_name: cross_entropy # Name of the loss function either 'cross_entropy' or 'binary_cross_entropy'
   num_classes: 1000        # Number of classes in the classification task
 
 # Training Dataset Parameters
 train_dataset:
-  is_streaming: true                    # Whether or not your data is in a remote location (e.g. a S3 bucket)
-  path:      # Path to S3 bucket if streaming, otherwise path to local data directory
-  local: /home/imagenet # Local cache when streaming data
-  resize_size: -1                       # Training image resize size before crop, -1 means no resize
-  crop_size: 224                        # Training image crop size
-  batch_size: 2048                      # Training dataloader batch size per device
-  num_workers: 14
+  is_streaming: false                    # Whether or not your data is in a remote location (e.g. a S3 bucket)
+  path: /kaggle/input/tiny-imagenet      # Path to S3 bucket if streaming, otherwise path to local data directory
+  local:  # Local cache when streaming data
+  resize_size:                        # Training image resize size before crop, -1 means no resize
+  crop_size:                        # Training image crop size
+  batch_size: 128                      # Training dataloader batch size per device
+  num_workers: 2
 
 # Validation Dataset Parameters
 eval_dataset:
-  is_streaming: true                    # Whether or not your data is in a remote location (e.g. a S3 bucket)
-  path:      # S3 bucket if streaming, otherwise path to local data
-  local: /home/imagenet # Local cache when streaming data
-  resize_size: 256                      # Evaluation image resize size before crop
-  crop_size: 224                        # Evaluation image crop size
-  batch_size: 2048                      # Evaluation dataloader batch size per device
-  num_workers: 14
+  is_streaming: false                    # Whether or not your data is in a remote location (e.g. a S3 bucket)
+  path: /kaggle/input/tiny-imagenet      # S3 bucket if streaming, otherwise path to local data
+  local:  # Local cache when streaming data
+  resize_size:                     # Evaluation image resize size before crop
+  crop_size:                      # Evaluation image crop size
+  batch_size: 128                      # Evaluation dataloader batch size per device
+  num_workers: 2
 
 # Optimizer Parameters
 optimizer:
@@ -44,8 +48,8 @@ scheduler:
 loggers:
   progress_bar: {}
   wandb:     # Uncomment and fill below arguments to use WandB logger
-    entity: keepsimpler # Name of WandB entity, usually username or organization name
-    project: bayes_resnet # Name of WandB project
+    entity: sunguoying # Name of WandB entity, usually username or organization name
+    project: convmixer_tiny_imagenet # Name of WandB project
     group:   # Name of WandB group
 
 # null for baseline or for recipe, either ["mild", "medium", "hot"] in order of increasing training time and accuracy
@@ -53,9 +57,9 @@ recipe_name: mild
 
 # Updated parameters for mild recipe
 mild:
-  model.loss_name: cross_entropy
-  train_dataset.crop_size: 176
-  eval_dataset.resize_size: 232
+  model.loss_name: 
+  train_dataset.crop_size: 
+  eval_dataset.resize_size: 
   max_duration: 36ep
 
 # Updated parameters for medium recipe
@@ -73,7 +77,7 @@ hot:
   max_duration: 270ep
 
 # Save checkpoint parameters
-save_folder:  ./{run_name}/ckpt      # e.g. './{run_name}/ckpt' (local) or 's3://mybucket/mydir/{run_name}/ckpt' (remote)
+save_folder:   convmixer                 # e.g. './{run_name}/ckpt' (local) or 's3://mybucket/mydir/{run_name}/ckpt' (remote)
 save_interval: 1ep             # Interval to checkpoint based on time string
 save_num_checkpoints_to_keep: 1 # Cleans up checkpoints saved locally only!
 

@@ -11,8 +11,8 @@ from composer.core import DataSpec
 from composer.datasets.utils import NormalizationFn, pil_image_collate
 from composer.utils import dist
 from streaming import StreamingDataset
-from torch.utils.data import DataLoader
-from torchvision import transforms
+from torch.utils.data import DataLoader  #数据加载
+from torchvision import transforms  #数据转换
 from torchvision.datasets import ImageFolder, VisionDataset
 
 # Scale by 255 since the collate `pil_image_collate` results in images in range 0-255
@@ -55,7 +55,7 @@ class StreamingImageNet(StreamingDataset, VisionDataset):
                          shuffle=shuffle,
                          batch_size=batch_size)
 
-    def __getitem__(self, idx: int) -> Any:
+    def __getitem__(self, idx: int) -> Any:  #对训练数据进行读取
         sample = super().__getitem__(idx)
         image = sample['x']
         if image.mode != 'RGB':
@@ -67,7 +67,7 @@ class StreamingImageNet(StreamingDataset, VisionDataset):
 
 
 def build_imagenet_dataspec(
-    data_path: str,
+    data_path: int,
     is_streaming: bool,
     batch_size: int,
     local: Optional[str] = None,
@@ -75,7 +75,7 @@ def build_imagenet_dataspec(
     drop_last: bool = True,
     shuffle: bool = True,
     resize_size: int = -1,
-    crop_size: int = 224,
+    crop_size: int = 256,
     **dataloader_kwargs,
 ) -> DataSpec:
     """Builds an ImageNet dataloader for either local or remote data.
@@ -106,21 +106,21 @@ def build_imagenet_dataspec(
     # Add split specific transformations
     if is_train:
         transform += [
-            transforms.RandomResizedCrop(crop_size,
-                                         scale=(0.08, 1.0),
-                                         ratio=(0.75, 4.0 / 3.0)),
-            transforms.RandomHorizontalFlip(P=0.5),
-            transforms.RandomVerticalFlip(p=0.5),
+             transforms.RandomResizedCrop(crop_size,
+                                          scale=(0.08, 1.0),
+                                          ratio=(0.75, 4.0 / 3.0)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
             transforms.RandAugment(num_ops=2, magnitude=12),
             transforms.ColorJitter(0.3, 0.3, 0.3),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            #transforms.ToTensor(),
+            #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 
         ]
     else:
-        transform.append(transforms.CenterCrop(crop_size))
+         transform.append(transforms.CenterCrop(crop_size))
 
-    transform = transforms.Compose(transform)
+    transform = transforms.Compose(transform) 
 
     device_transform_fn = NormalizationFn(mean=IMAGENET_CHANNEL_MEAN,
                                           std=IMAGENET_CHANNEL_STD)
@@ -159,7 +159,7 @@ def check_dataloader():
     data.py s3://my-bucket/my-dir/data /tmp/path/to/local` to test streaming.
     """
     data_path = sys.argv[1]
-    batch_size = 2
+    batch_size = 2     #此处待修改
     local = None
     is_streaming = len(sys.argv) > 2
     if is_streaming:

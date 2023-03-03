@@ -1,7 +1,7 @@
 # Copyright 2022 MosaicML Examples authors
 # SPDX-License-Identifier: Apache-2.0
 
-"""Example script to train a ResNet model on Tiny ImageNet."""
+"""Example script to train a ResNet model on ImageNet."""
 
 import os
 import sys
@@ -14,7 +14,7 @@ from composer.algorithms import (EMA, SAM, BlurPool, ChannelsLast, ColOut,
                                  RandAugment, StochasticDepth)
 from composer.callbacks import LRMonitor, MemoryMonitor, SpeedMonitor
 from composer.loggers import ProgressBarLogger, WandBLogger
-from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW
+from composer.optim import CosineAnnealingWithWarmupScheduler,DecoupledSGDW
 from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
 from model import build_composer_resnet
@@ -92,13 +92,14 @@ def main(config):
 
     # Instantiate torchvision ResNet model
     print('Building Composer model')
-    composer_model = build_composer_resnet(
+    composer_model = build_composer_resnet( 
         model_name=config.model.name,
         loss_name=config.model.loss_name,
         hidden_dim=config.model.hidden_dim,
         kernel_size=config.model.kernel_size,
         patch_size=config.model.patch_size,
         num_layers=config.model.num_layers,
+        fold_num=config.model.fold_num,
         num_classes=config.model.num_classes,
     )
     print('Built Composer model\n')
@@ -131,13 +132,13 @@ def main(config):
     print('Building algorithm recipes')
     if config.recipe_name == 'mild':
         algorithms = [
-            # BlurPool(),
+            BlurPool(),
             ChannelsLast(),
-            # EMA(half_life='100ba', update_interval='20ba'),
-            # ProgressiveResizing(initial_scale=0.5,
-            #                     delay_fraction=0.4,
-            #                     finetune_fraction=0.2),
-            # LabelSmoothing(smoothing=0.08),
+            EMA(half_life='100ba', update_interval='20ba'),
+            ProgressiveResizing(initial_scale=0.5,
+                                delay_fraction=0.4,
+                                finetune_fraction=0.2),
+            LabelSmoothing(smoothing=0.08),
         ]
     elif config.recipe_name == 'medium':
         algorithms = [

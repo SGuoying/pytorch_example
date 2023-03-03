@@ -10,7 +10,9 @@ from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 
 from sunyata.pytorch.arch.base import Residual
-from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
+from sunyata.pytorch_lightning.base import BaseModule
+from sunyata.pytorch.arch.foldnet import FoldNet, FoldNetCfg, FoldNetRepeat, FoldNetRepeat2, Block2
+#from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -19,97 +21,27 @@ def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     # return - (input * target).mean()
 
 
-class ConvMixer(nn.Module):
-    def __init__(
-        self,
-        hidden_dim: int,
-        kernel_size: int,
-        patch_size: int,
-        num_layers: int,
-        num_classes: int,
-    ):
-        super().__init__()
-
-        self.layers = nn.Sequential(*[
-            nn.Sequential(
-                Residual(nn.Sequential(
-                    nn.Conv2d(hidden_dim, hidden_dim, kernel_size, groups=hidden_dim, padding="same"),
-                    nn.GELU(),
-                    nn.BatchNorm2d(hidden_dim)
-                )),
-                nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1),
-                nn.GELU(),
-                nn.BatchNorm2d(hidden_dim)
-            ) for _ in range(num_layers)
-        ])
-
-        self.embed = nn.Sequential(
-            nn.Conv2d(3, hidden_dim, kernel_size=patch_size, stride=patch_size),
-            nn.GELU(),
-            nn.BatchNorm2d(hidden_dim),
-        )
-
-        self.digup = nn.Sequential(
-            nn.AdaptiveAvgPool2d((1,1)),
-            nn.Flatten(),
-            nn.Linear(hidden_dim, num_classes)
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.embed(x)
-        x= self.layers(x)
-        x= self.digup(x)
-        return x
-
-
-class BayesConvMixer(ConvMixer):
-    def __init__(
-        self,
-        hidden_dim: int,
-        kernel_size: int,
-        patch_size: int,
-        num_layers: int,
-        num_classes: int,
-    ):
-        super().__init__(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-
-        log_prior = torch.zeros(1, num_classes)
-        # log_prior = - torch.log(torch.ones(1, num_classes) * num_classes)
-        self.register_buffer('log_prior', log_prior) 
-        # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
-
-    def forward(self, x: torch.Tensor):
-        batch_size, _, _, _ = x.shape
-        log_prior = self.log_prior.repeat(batch_size, 1)
-
-        x = self.embed(x)
-        for layer in self.layers:
-            x = layer(x)
-            logits = self.digup(x) 
-            log_prior = F.log_softmax(log_prior + logits, dim=-1) # log_bayesian_iteration(log_prior, logits)
-        
-        return log_prior
-
-
 def build_composer_resnet(
     *,
-    model_name: str = 'convmixer',
+    model_name: str = 'foldnet',
     loss_name: str = "nll_loss",
+    block=Block2,
     hidden_dim: int,
     kernel_size: int,
+    fold_num: int,
     patch_size: int,
     num_layers: int,
-    num_classes: int = 1000    
+    num_classes: int = 12   
 ):
     """Helper function to build a Composer ResNet model.
 
     Args:
         num_classes (int, optional): Number of classes in the classification task. Default: ``1000``.
     """
-    if model_name == 'convmixer':
-        model = ConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-    elif model_name == 'convmixer-bayes':
-        model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
+    if model_name == 'foldnet':
+        model = FoldNetRepeat(FoldNetCfg(block=Block2,hidden_dim=hidden_dim,kernel_size=kernel_size,fold_num=fold_num, patch_size=patch_size, num_layers=num_classes, num_classes=num_classes))
+    # elif model_name == 'convmixer-bayes':
+    #     model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     else:
         raise ValueError("Only support convmixer and convmixer-bayes till now.")
 
