@@ -19,7 +19,6 @@ from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
 from model import build_composer_resnet
 from omegaconf import OmegaConf
-from examples.common.builders import build_optimizer
 
 from examples.common.config_utils import log_config
 
@@ -99,6 +98,7 @@ def main(config):
         hidden_dim=config.model.hidden_dim,
         kernel_size=config.model.kernel_size,
         patch_size=config.model.patch_size,
+        num_layers=config.model.num_layers,
         num_classes=config.model.num_classes,
                                            )
     print('Built Composer model\n')
