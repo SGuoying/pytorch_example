@@ -11,7 +11,7 @@ from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 
 from sunyata.pytorch.arch.base import Residual
-from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
+# from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:

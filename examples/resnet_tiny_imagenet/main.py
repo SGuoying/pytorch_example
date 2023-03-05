@@ -18,7 +18,7 @@ from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW
 from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
 from model import build_composer_resnet
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, DictConfig
 
 from examples.common.config_utils import log_config
 
@@ -32,7 +32,7 @@ def build_logger(name: str, kwargs: Dict):
         raise ValueError(f'Not sure how to build logger: {name}')
 
 
-def main(cfg):
+def main(cfg: DictConfig):
     reproducibility.seed_all(cfg.seed)
     if cfg.grad_accum == 'auto' and not torch.cuda.is_available():
         raise ValueError(
