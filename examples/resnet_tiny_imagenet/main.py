@@ -14,7 +14,7 @@ from composer.algorithms import (EMA, SAM, BlurPool, ChannelsLast, ColOut,
                                  RandAugment, StochasticDepth)
 from composer.callbacks import LRMonitor, MemoryMonitor, SpeedMonitor
 from composer.loggers import ProgressBarLogger, WandBLogger
-from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW
+from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW, DecoupledAdamW
 from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
 from model import build_composer_resnet
@@ -105,10 +105,19 @@ def main(cfg: DictConfig):
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
-    optimizer = DecoupledSGDW(composer_model.parameters(),
+    if cfg.optimizer.name == 'decoupled_adamw':
+        optimizer = DecoupledAdamW(composer_model.parameters(),
+                              lr=cfg.optimizer.lr,
+                              betas=cfg.optimizer.betas,
+                              eps=cfg.optimizer.eps,
+                              weight_decay=cfg.optimizer.weight_decay)
+    elif cfg.optimizer.name == 'decoupled_sgdw':
+        optimizer = DecoupledSGDW(composer_model.parameters(),
                               lr=cfg.optimizer.lr,
                               momentum=cfg.optimizer.momentum,
                               weight_decay=cfg.optimizer.weight_decay)
+    else:
+        raise ValueError(f'Not sure how to build optimizer: {cfg.name}')
 
     # Learning rate scheduler: LR warmup for 8 epochs, then cosine decay for the rest of training
     lr_scheduler = CosineAnnealingWithWarmupScheduler(

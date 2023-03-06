@@ -35,10 +35,19 @@ eval_dataset:
   num_workers: 2
 
 # Optimizer Parameters
+# optimizer:
+#   name: decoupled_sgdw
+#   lr: 2.048
+#   momentum: 0.875
+#   weight_decay: 5.0e-4
 optimizer:
-  lr: 2.048
-  momentum: 0.875
-  weight_decay: 5.0e-4
+  name: decoupled_adamw
+  lr: 6.0e-4
+  betas:
+  - 0.9
+  - 0.95
+  eps: 1.0e-08
+  weight_decay: 0.0
 
 # LR Scheduler Parameters
 scheduler:
