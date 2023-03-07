@@ -80,7 +80,7 @@ class BayesConvMixer(ConvMixer):
         self.register_buffer('log_prior', log_prior) 
         # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
         # self.sqrt_num_classes = sqrt(num_classes)
-        self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
+        # self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
         # self.logits_layer_norm = nn.LayerNorm(num_classes)
         self.num_classes = num_classes
 
