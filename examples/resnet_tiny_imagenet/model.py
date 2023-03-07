@@ -1,7 +1,6 @@
 # Copyright 2022 MosaicML Examples authors
 # SPDX-License-Identifier: Apache-2.0
 
-from math import sqrt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,6 +11,7 @@ from torchmetrics import Accuracy, MetricCollection
 
 from sunyata.pytorch.arch.base import Residual
 # from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
+from sunyata.pytorch.arch.deit import vit_models, bayes_vit_models
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -166,6 +166,10 @@ def build_composer_resnet(
         model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     elif model_name == 'convmixer-bayes-2':
         model = BayesConvMixer2(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
+    elif model_name == 'vit_models':
+        model = vit_models(img_size=64, patch_size=patch_size, num_classes=num_classes, embed_dim=hidden_dim, depth=num_layers, num_heads=hidden_dim//64)
+    elif model_name == 'bayes_vit_models':
+        model = bayes_vit_models(img_size=64, patch_size=patch_size, num_classes=num_classes, embed_dim=hidden_dim, depth=num_layers, num_heads=hidden_dim//64)
     else:
         raise ValueError("Only support convmixer and convmixer-bayes till now.")
 
