@@ -8,7 +8,7 @@ grad_accum: auto           # Amount of gradient accumulation, 'auto' means Compo
 model:
   name: resmlp           # Name of the ResNet model to train either resnet{18, 34, 50, 101, 152}
   hidden_dim: 256
-  image_size: 32
+  image_size: 64
   expansion_factor: 4
   channels: 3
   is_bayes: true
