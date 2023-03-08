@@ -98,6 +98,8 @@ class DeepBayesInferResMlp(nn.Module):
         else:
             self.register_buffer('log_prior', log_prior)
 
+        self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
+
     def forward(self, x):
         batch_size, _, _, _ = x.shape
         log_prior = self.log_prior.repeat(batch_size, 1)
