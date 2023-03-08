@@ -82,7 +82,7 @@ class DeepBayesInferResMlp(nn.Module):
             self.layers = nn.ModuleList([nn.Sequential(*self.layers)])  # to onr layer
         
         self.embed = nn.Sequential(
-            Rearrange('b c (h, p1) (w, p2) -> b (h w) (p1 p2 c)', p1=patch_size, p2=patch_size),
+            Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1=patch_size, p2=patch_size),
             nn.Linear((patch_size ** 2 ) * channels, hidden_dim)
         )
 
