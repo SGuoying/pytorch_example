@@ -2,11 +2,18 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops.layers.torch import Rearrange, Reduce
+from composer.loss import binary_cross_entropy_with_logits, soft_cross_entropy
+from composer.metrics import CrossEntropy
+from composer.models import ComposerClassifier
+from torchmetrics import Accuracy, MetricCollection
 from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 
 
 pair = lambda x: x if isinstance(x, tuple) else (x, x)
-
+def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    # target = torch.argmax(target, dim=1)
+    return F.nll_loss(input, target)
+    # return - (input * target).mean()
 
 class Affine(nn.Module):
     def __init__(self, dim):
@@ -42,13 +49,13 @@ class PreAffinePostLayerScale(nn.Module):
 
 class DeepBayesInferResMlp(nn.Module):
     def __init__(self,
-                 image_size: int = 32,
-                 patch_size: int = 4,
-                 hidden_dim: int = 128,
+                 image_size: int ,
+                 patch_size: int ,
+                 hidden_dim: int,
                 #  depth: int = 16,
-                 expansion_factor: int = 4,
-                 num_layers: int = 8,
-                 num_classes: int = 10,
+                 expansion_factor: int ,
+                 num_layers: int,
+                 num_classes: int ,
                  channels: int = 3,
                  is_bayes: bool = True,
                  is_prior_as_params: bool = False,
@@ -102,3 +109,82 @@ class DeepBayesInferResMlp(nn.Module):
             log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
             log_prior = F.log_softmax(log_prior, dim=-1)  # log_bayesian_iteration(log_prior, logits)
         return log_prior
+    
+
+def build_composer_resnet(
+        *,
+        model_name: str = 'resmlp',
+        loss_name: str = 'bll_loss',
+        image_size: int ,
+        patch_size: int ,
+        hidden_dim: int ,
+                #  depth: int = 16,
+        expansion_factor: int ,
+        num_layers: int ,
+        num_classes: int ,
+        channels: int = 3,
+        is_bayes: bool = True,
+        is_prior_as_params: bool = False,):
+        # model_name: str = 'convmixer',
+        # loss_name: str = 'bll_loss',
+        # hidden_dim: int,
+        # kernel_size: int,
+        # patch_size: int,
+        # num_layers: int,
+        # num_classes: int = 1000):
+    """Helper function to build a Composer ResNet model.
+
+    Args:
+        model_name (str, optional): Name of the ResNet model to use, either
+            ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152']. Default: ``'resnet50'``.
+        loss_name (str, optional): Name of the loss function to use, either ['cross_entropy', 'binary_cross_entropy'].
+            Default: ``'cross_entropy'``.
+        num_classes (int, optional): Number of classes in the classification task. Default: ``1000``.
+    """
+    # model_fn = getattr(resnet, model_name)
+
+    # model = model_fn(num_classes=num_classes, groups=1, width_per_group=64)
+    if model_name == 'resmlp':
+        model = DeepBayesInferResMlp(image_size, patch_size, hidden_dim, expansion_factor, num_layers, num_classes, channels, is_bayes, is_prior_as_params)
+    else:
+        raise ValueError("only support mlp")
+    
+
+    # Specify model initialization
+    def weight_init(w: torch.nn.Module):
+        if isinstance(w, torch.nn.Linear) or isinstance(w, torch.nn.Conv2d):
+            torch.nn.init.kaiming_normal_(w.weight)
+        if isinstance(w, torch.nn.BatchNorm2d):
+            w.weight.data = torch.rand(w.weight.data.shape)
+            w.bias.data = torch.zeros_like(w.bias.data)
+        # When using binary cross entropy, set the classification layer bias to -log(num_classes)
+        # to ensure the initial probabilities are approximately 1 / num_classes
+        # if loss_name == 'binary_cross_entropy' and isinstance(
+        #         w, torch.nn.Linear):
+        #     w.bias.data = torch.ones(
+        #         w.bias.shape) * -torch.log(torch.tensor(w.bias.shape[0]))
+
+    model.apply(weight_init)
+
+    # Performance metrics to log other than training loss
+    train_metrics = Accuracy()
+    val_metrics = MetricCollection([CrossEntropy(), Accuracy()])
+
+    # Choose loss function: either cross entropy or binary cross entropy
+    if loss_name == 'cross_entropy':
+        loss_fn = soft_cross_entropy
+    elif loss_name == 'binary_cross_entropy':
+        loss_fn = binary_cross_entropy_with_logits
+    elif loss_name == 'nll_loss':
+        loss_fn = nll_loss
+    else:
+        raise ValueError(
+            f"loss_name='{loss_name}' but must be either ['cross_entropy', 'binary_cross_entropy']"
+        )
+
+    # Wrapper function to convert a image classification PyTorch model into a Composer model
+    composer_model = ComposerClassifier(model,
+                                        train_metrics=train_metrics,
+                                        val_metrics=val_metrics,
+                                        loss_fn=loss_fn)
+    return composer_model

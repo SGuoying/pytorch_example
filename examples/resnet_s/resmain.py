@@ -17,7 +17,7 @@ from composer.loggers import ProgressBarLogger, WandBLogger
 from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW
 from composer.utils import dist, reproducibility
 from data import build_imagenet_dataspec
-from model import build_composer_resnet
+from resmlp_model import build_composer_resnet
 from omegaconf import OmegaConf
 
 from examples.common.config_utils import log_config
