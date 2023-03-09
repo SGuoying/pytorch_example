@@ -115,7 +115,7 @@ class BayesConvMixer2(ConvMixer):
         num_stages = 4
         self.digups = nn.ModuleList([
             nn.Sequential(
-            nn.AdaptiveAvgPool2d((1,)),
+            nn.AdaptiveAvgPool2d((1,1)),
             nn.Flatten(),
             nn.Linear(hidden_dim, num_classes)
             ) for _ in range(num_stages)
