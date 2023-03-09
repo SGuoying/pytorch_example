@@ -1,6 +1,5 @@
 # Copyright 2022 MosaicML Examples authors
 # SPDX-License-Identifier: Apache-2.0
-from math import sqrt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,7 +9,8 @@ from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 # from torchvision.models import resnet
 from sunyata.pytorch.arch.base import Residual
-from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
+# from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
+from sunyata.pytorch.arch.deit import vit_models, bayes_vit_models
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -79,6 +79,7 @@ class BayesConvMixer(ConvMixer):
         # self.sqet_num_classes = sqrt(num_classes)
         self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
         # self.logits_layer_norm = nn.LayerNorm(num_classes)
+        self.num_classes = num_classes
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch_size, _, _, _ = x.shape
