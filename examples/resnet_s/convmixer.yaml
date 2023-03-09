@@ -53,7 +53,7 @@ loggers:
     group:   # Name of WandB group
 
 # null for baseline or for recipe, either ["mild", "medium", "hot"] in order of increasing training time and accuracy
-recipe_name: medium  # mild
+recipe_name: mild  # mild
 
 # Updated parameters for mild recipe
 mild:
