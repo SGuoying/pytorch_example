@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -98,18 +99,23 @@ class DeepBayesInferResMlp(nn.Module):
         else:
             self.register_buffer('log_prior', log_prior)
 
-        self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
+        # self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
+        self.num_classes = num_classes
 
     def forward(self, x):
         batch_size, _, _, _ = x.shape
+        print(x.shape)
         log_prior = self.log_prior.repeat(batch_size, 1)
         x = self.embed(x)
+        print(x.shape)
         for layer in self.layers:
             x = layer(x)
+            print(x.shape)
             logits = self.digup(x)
             log_prior = log_prior + logits
-            log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
+            # log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
             log_prior = F.log_softmax(log_prior, dim=-1)  # log_bayesian_iteration(log_prior, logits)
+            log_prior = log_prior + math.log(self.num_classes)
         return log_prior
     
 

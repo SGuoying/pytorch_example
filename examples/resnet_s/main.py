@@ -32,7 +32,7 @@ def build_logger(name: str, kwargs: Dict):
         raise ValueError(f'Not sure how to build logger: {name}')
 
 
-def main(config):
+def main(config: DictConfig):
     reproducibility.seed_all(config.seed)
     if config.grad_accum == 'auto' and not torch.cuda.is_available():
         raise ValueError(

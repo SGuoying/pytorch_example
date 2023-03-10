@@ -12,7 +12,7 @@ model:
   expansion_factor: 4
   channels: 3
   is_bayes: true
-  is_prior_as_params: true
+  is_prior_as_params: false
   kernel_size: 5
   patch_size: 4
   num_layers: 12
