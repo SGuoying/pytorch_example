@@ -110,6 +110,7 @@ def build_imagenet_dataspec(
             #                              scale=(0.08, 1.0),
             #                              ratio=(0.75, 4.0 / 3.0)),
             transforms.RandomHorizontalFlip(),
+            transform.append(transforms.Resize(resize_size))
         ]
     # else:
     #     transform.append(transforms.CenterCrop(crop_size))
