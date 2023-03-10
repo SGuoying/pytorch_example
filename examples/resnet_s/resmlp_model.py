@@ -105,12 +105,15 @@ class DeepBayesInferResMlp(nn.Module):
     def forward(self, x):
         batch_size, _, _, _ = x.shape
         print(x.shape)
+        print("aaaaa")
         log_prior = self.log_prior.repeat(batch_size, 1)
         x = self.embed(x)
         print(x.shape)
+        print("bbbbb")
         for layer in self.layers:
             x = layer(x)
             print(x.shape)
+            print("ccccc")
             logits = self.digup(x)
             log_prior = log_prior + logits
             # log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
