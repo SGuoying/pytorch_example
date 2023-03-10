@@ -100,8 +100,8 @@ def build_imagenet_dataspec(
 
     split = 'train' if is_train else 'val'
     transform: List[torch.nn.Module] = []
-    # if resize_size > 0:
-    #     transform.append(transforms.Resize(resize_size))
+    if resize_size > 0:
+        transform.append(transforms.Resize(resize_size))
 
     # Add split specific transformations
     if is_train:
