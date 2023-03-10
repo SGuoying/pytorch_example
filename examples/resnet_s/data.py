@@ -100,8 +100,8 @@ def build_imagenet_dataspec(
 
     split = 'train' if is_train else 'val'
     transform: List[torch.nn.Module] = []
-    if resize_size > 0:
-        transform.append(transforms.Resize(resize_size))
+    # if resize_size > 0:
+    #     transform.append(transforms.Resize(resize_size))
 
     # Add split specific transformations
     if is_train:
@@ -109,7 +109,8 @@ def build_imagenet_dataspec(
             # transforms.RandomResizedCrop(crop_size,
             #                              scale=(0.08, 1.0),
             #                              ratio=(0.75, 4.0 / 3.0)),
-            transforms.RandomHorizontalFlip()
+            transforms.RandomHorizontalFlip(),
+            transform.append(transforms.Resize(resize_size))
         ]
     # else:
     #     transform.append(transforms.CenterCrop(crop_size))
