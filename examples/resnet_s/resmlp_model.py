@@ -112,8 +112,8 @@ class DeepBayesInferResMlp(nn.Module):
         print("bbbbb")
         for layer in self.layers:
             x = layer(x)
-            print(x.shape)
-            print("ccccc")
+            # print(x.shape)
+            # print("ccccc")
             logits = self.digup(x)
             log_prior = log_prior + logits
             # log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
