@@ -99,7 +99,7 @@ class DeepBayesInferResMlp(nn.Module):
         else:
             self.register_buffer('log_prior', log_prior)
 
-        # self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
+        self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
         self.num_classes = num_classes
 
     def forward(self, x):
