@@ -116,9 +116,9 @@ class DeepBayesInferResMlp(nn.Module):
             # print("ccccc")
             logits = self.digup(x)
             log_prior = log_prior + logits
-            # log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
+            log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
             log_prior = F.log_softmax(log_prior, dim=-1)  # log_bayesian_iteration(log_prior, logits)
-            log_prior = log_prior + math.log(self.num_classes)
+            # log_prior = log_prior + math.log(self.num_classes)
         return log_prior
     
 

@@ -41,13 +41,18 @@ eval_dataset:
 
 # Optimizer Parameters
 optimizer:
-  lr: 2.048
+  name: decoupled_adamw
+  lr: 0.005
   momentum: 0.875
-  weight_decay: 5.0e-4
+  betas:
+  - 0.9
+  - 0.95
+  eps: 1.0e-08
+  weight_decay: 0.2
 
 # LR Scheduler Parameters
 scheduler:
-  t_warmup: 8ep # Duration of learning rate warmup specified as a Time string
+  t_warmup: 5ep # Duration of learning rate warmup specified as a Time string
   alpha_f: 0.0  # Base learning rate multiplier to decay to
 
 loggers:
