@@ -136,13 +136,13 @@ def main(config):
     print('Building algorithm recipes')
     if config.recipe_name == 'mild':
         algorithms = [
-            BlurPool(),
+            # BlurPool(),
             ChannelsLast(),
-            EMA(half_life='100ba', update_interval='20ba'),
-            ProgressiveResizing(initial_scale=0.5,
-                                delay_fraction=0.4,
-                                finetune_fraction=0.2),
-            LabelSmoothing(smoothing=0.08),
+            # EMA(half_life='100ba', update_interval='20ba'),
+            # ProgressiveResizing(initial_scale=0.5,
+            #                     delay_fraction=0.4,
+            #                     finetune_fraction=0.2),
+            # LabelSmoothing(smoothing=0.08),
         ]
     elif config.recipe_name == 'medium':
         algorithms = [
