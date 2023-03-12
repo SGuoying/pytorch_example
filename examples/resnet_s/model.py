@@ -159,9 +159,9 @@ def build_composer_resnet(
     # model = model_fn(num_classes=num_classes, groups=1, width_per_group=64)
     if model_name == 'convmixer':
         model = ConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-    elif model_name == 'convmixer-bayes':
+    elif model_name == 'convmixer_bayes':
         model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-    elif model_name == 'convmixer-bayes-2':
+    elif model_name == 'convmixer_bayes_2':
         model = BayesConvMixer2(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     elif model_name == 'vit_models':
         model = vit_models(img_size=64, patch_size=patch_size, num_classes=num_classes, embed_dim=hidden_dim, depth=num_layers, num_heads=hidden_dim//64)
