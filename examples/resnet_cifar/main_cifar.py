@@ -19,7 +19,7 @@ from composer.utils import dist, reproducibility
 from data import build_cifar10_dataspec
 # from model import build_composer_resnet
 from omegaconf import OmegaConf
-from main_cifar import build_composer_resnet
+from model_cifar import build_composer_resnet
 
 from examples.common.config_utils import log_config
 
