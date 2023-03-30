@@ -89,6 +89,8 @@ def build_composer_resnet(model_name: str = 'resnet50',
     """
     if model_name == 'bayes_resnet50':
         model = BayesResNet2(Bottleneck, [3, 4, 6, 3])
+        in_chans = model.fc.in_features
+        model.fc = nn.Linear(in_chans, 10)
     else:
         model_fn = getattr(resnet, model_name)
         model = model_fn(num_classes=num_classes, groups=1, width_per_group=64)
