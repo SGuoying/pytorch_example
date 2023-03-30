@@ -29,7 +29,7 @@ class BayesResNet2(ResNet):
                         num_classes, 
                         zero_init_residual, 
                         groups, 
-                        width_per_group,
+                        idth_per_group,
                         replace_stride_with_dilation, 
                         norm_layer)
         self.fc = nn.Linear(512 * block.expansion, 10) 
