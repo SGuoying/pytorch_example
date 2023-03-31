@@ -32,7 +32,7 @@ class BayesResNet2(ResNet):
                         idth_per_group,
                         replace_stride_with_dilation, 
                         norm_layer)
-        self.fc = nn.Linear(512 * block.expansion, 10) 
+        # self.fc = nn.Linear(512 * block.expansion, 1000) 
         expansion = block.expansion
         self.digups = nn.ModuleList([
             *[nn.Sequential(
