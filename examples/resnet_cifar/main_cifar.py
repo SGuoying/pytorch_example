@@ -194,7 +194,7 @@ def main(config):
         # save_num_checkpoints_to_keep=config.save_num_checkpoints_to_keep,
         save_overwrite=config.get('save_overwrite', False),
         load_path=config.load_path,
-        load_ignore_keys=["state/model/fc.weights", "state/model/fc.bias"],
+        load_ignore_keys=["state/model/fc.weight", "state/model/fc.bias"],
         load_exclude_algorithms = ["BlurPool"],
         device=device,
         precision=precision,
