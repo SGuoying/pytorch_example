@@ -51,7 +51,7 @@ class BayesResNet2(ResNet):
         log_prior = torch.zeros(1, num_classes)
         self.register_buffer('log_prior', log_prior)
         self.logits_layer_norm = nn.LayerNorm(num_classes)
-        self.digup = nn.Linear(num_classes, 10)
+        # self.digup = nn.Linear(num_classes, 10)
 
     def _forward_impl(self, x: torch.Tensor) -> torch.Tensor:
         batch_size, _, _, _ = x.shape
@@ -77,7 +77,7 @@ class BayesResNet2(ResNet):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._forward_impl(x)
-        x = self.digup(x)
+        # x = self.digup(x)
         return x
 
 
@@ -95,8 +95,8 @@ def build_composer_resnet(model_name: str = 'resnet50',
     """
     if model_name == 'bayes_resnet50':
         model = BayesResNet2(Bottleneck, [3, 4, 6, 3])
-        # in_chans = model.fc.in_features
-        # model.fc = nn.Linear(in_chans, 10)
+        in_chans = model.fc.in_features
+        model.fc = nn.Linear(in_chans, 10)
     else:
         model_fn = getattr(resnet, model_name)
         model = model_fn(num_classes=num_classes, groups=1, width_per_group=64)
