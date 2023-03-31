@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Example script to train a ResNet model on ImageNet."""
-# from composer.core import state
+from composer.core import state
 import os
 import sys
 from typing import Dict
@@ -193,8 +193,9 @@ def main(config):
         # save_interval=config.save_interval,
         # save_num_checkpoints_to_keep=config.save_num_checkpoints_to_keep,
         save_overwrite=config.get('save_overwrite', False),
+        load_ignore_keys=["state/model/fc.weight", "state/model/fc.bias",],
         load_path=config.load_path,
-        load_ignore_keys=["state/model/fc.weight*", "state/model/fc.bias*",],
+        
         load_exclude_algorithms = ["BlurPool"],
         device=device,
         precision=precision,
