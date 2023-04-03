@@ -100,10 +100,10 @@ def main(config):
     print('Built Composer model\n')
 
     #  model pretrain
-    model_pretrain = torch.load(config.load_path)
-    composer_model.load_state_dict(model_pretrain)
-    in_chans = composer_model.fc.in_features
-    composer_model.fc = nn.Linear(in_chans, 10)
+    # model_pretrain = torch.load(config.load_path)
+    # composer_model.load_state_dict(model_pretrain)
+    # in_chans = composer_model.fc.in_features
+    # composer_model.fc = nn.Linear(in_chans, 10)
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
@@ -200,9 +200,9 @@ def main(config):
         save_interval=config.save_interval,
         save_num_checkpoints_to_keep=config.save_num_checkpoints_to_keep,
         save_overwrite=config.get('save_overwrite', False),
-        # load_ignore_keys=["state/model/fc.weight", "state/model/fc.bias",],
-        # load_path=config.load_path,
         
+        load_path=config.load_path,
+        load_ignore_keys=["state/composer_model/fc.weight", "state/composer_model/fc.bias",],
         # load_exclude_algorithms = ["BlurPool"],
         device=device,
         precision=precision,

@@ -155,7 +155,7 @@ def build_composer_resnet(model_name: str = 'resnet50',
         num_classes (int, optional): Number of classes in the classification task. Default: ``1000``.
     """
     if model_name == 'bayes_resnet50':
-        model = BayesResNet(Bottleneck, [3, 4, 6, 3])
+        model = BayesResNet2(Bottleneck, [3, 4, 6, 3])
         # in_chans = model.fc.in_features
         # model.fc = nn.Linear(in_chans, 10)
     else:
