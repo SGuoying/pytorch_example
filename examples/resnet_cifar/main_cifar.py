@@ -8,6 +8,7 @@ import sys
 from typing import Dict
 
 import torch
+import torch.nn as nn
 from composer import Trainer
 from composer.algorithms import (EMA, SAM, BlurPool, ChannelsLast, ColOut,
                                  LabelSmoothing, MixUp, ProgressiveResizing,
@@ -97,6 +98,12 @@ def main(config):
                                            loss_name=config.model.loss_name,
                                            num_classes=config.model.num_classes)
     print('Built Composer model\n')
+
+    #  model pretrain
+    model_pretrain = torch.load(config.load_path)
+    composer_model.load_state_dict(model_pretrain)
+    in_chans = composer_model.fc.in_features
+    composer_model.fc = nn.Linear(in_chans, 10)
 
     # Optimizer
     print('Building optimizer and learning rate scheduler')
@@ -189,14 +196,14 @@ def main(config):
         loggers=loggers,
         max_duration=config.max_duration,
         callbacks=[speed_monitor, lr_monitor, memory_monitor],
-        # save_folder=config.save_folder,
-        # save_interval=config.save_interval,
-        # save_num_checkpoints_to_keep=config.save_num_checkpoints_to_keep,
+        save_folder=config.save_folder,
+        save_interval=config.save_interval,
+        save_num_checkpoints_to_keep=config.save_num_checkpoints_to_keep,
         save_overwrite=config.get('save_overwrite', False),
-        load_ignore_keys=["state/model/fc.weight", "state/model/fc.bias",],
-        load_path=config.load_path,
+        # load_ignore_keys=["state/model/fc.weight", "state/model/fc.bias",],
+        # load_path=config.load_path,
         
-        load_exclude_algorithms = ["BlurPool"],
+        # load_exclude_algorithms = ["BlurPool"],
         device=device,
         precision=precision,
         grad_accum=config.grad_accum,
