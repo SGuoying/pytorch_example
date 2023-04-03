@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Example script to train a ResNet model on ImageNet."""
-from composer.core import state
+
 import os
 import sys
 from typing import Dict
