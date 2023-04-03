@@ -3,7 +3,9 @@
 
 from typing import Callable, List, Optional, Type, Union
 import torch
+from torch.nn import functional as F
 import torch.nn as nn
+from torch.nn import Parameter
 from composer.loss import binary_cross_entropy_with_logits, soft_cross_entropy
 from composer.metrics import CrossEntropy
 from composer.models import ComposerClassifier
@@ -11,8 +13,67 @@ from torchmetrics import Accuracy, MetricCollection
 from torchvision.models.resnet import ResNet, BasicBlock, Bottleneck
 from torchvision.models import resnet
 # from torchvision.models.resnet import Bottleneck
-from sample.pytorch.py_arch.bayes.resnet import BayesResNet2
+# from sample.pytorch.py_arch.bayes.resnet import BayesResNet2
 
+class BayesResNet(ResNet):
+    def __init__(
+        self,
+        block: Type[Union[BasicBlock, Bottleneck]],
+        layers: List[int],
+        num_classes: int = 1000,
+        zero_init_residual: bool = False,
+        groups: int = 1,
+        width_per_group: int = 64,
+        replace_stride_with_dilation: Optional[List[bool]] = None,
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+    ) -> None:
+        super().__init__(
+            block,
+            layers,
+            num_classes,
+            zero_init_residual,
+            groups,
+            width_per_group,
+            replace_stride_with_dilation,
+            norm_layer,
+        )
+
+        avgpool1 = nn.AdaptiveAvgPool2d((2, 4))
+        avgpool2 = nn.AdaptiveAvgPool2d((2, 2))
+        avgpool3 = nn.AdaptiveAvgPool2d((2, 1))
+        self.avgpools = nn.ModuleList([
+            avgpool1,
+            avgpool2, 
+            avgpool3,
+            self.avgpool,
+        ])
+        log_prior = torch.zeros(1, num_classes)
+        self.register_buffer('log_prior', log_prior)
+        self.logits_bias = Parameter(torch.zeros(1, num_classes))
+
+    def _forward_impl(self, x: torch.Tensor) -> torch.Tensor:
+        batch_size, _, _, _ = x.shape
+        log_prior = self.log_prior.repeat(batch_size, 1)
+
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        for i, layer in enumerate([
+            self.layer1, self.layer2,
+            self.layer3, self.layer4
+        ]):
+            for block in layer:
+                x = block(x)
+                logits = self.avgpools[i](x)
+                logits = torch.flatten(logits, start_dim=1)
+                logits = self.fc(logits)
+                log_prior = log_prior + logits
+                log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
+                log_prior = F.log_softmax(log_prior, dim=-1)
+        return log_prior
+    
 
 class BayesResNet2(ResNet):
     def __init__(self, 
@@ -94,7 +155,7 @@ def build_composer_resnet(model_name: str = 'resnet50',
         num_classes (int, optional): Number of classes in the classification task. Default: ``1000``.
     """
     if model_name == 'bayes_resnet50':
-        model = BayesResNet2(Bottleneck, [3, 4, 6, 3])
+        model = BayesResNet(Bottleneck, [3, 4, 6, 3])
         # in_chans = model.fc.in_features
         # model.fc = nn.Linear(in_chans, 10)
     else:
