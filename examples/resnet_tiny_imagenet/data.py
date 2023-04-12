@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 # from sunyata.pytorch.data.tiny_imagenet import TinyImageNet
-from sample.pytorch.data.tiny_imagenet import TinyImageNet, TinyImageNetDataModule
+from sample.pytorch.data.tiny_imagenet import TinyImageNet
 # Scale by 255 since the collate `pil_image_collate` results in images in range 0-255
 # If using ToTensor() and the default collate, remove the scaling by 255
 IMAGENET_CHANNEL_MEAN = (0.485 * 255, 0.456 * 255, 0.406 * 255)
