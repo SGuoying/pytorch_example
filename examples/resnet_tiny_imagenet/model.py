@@ -10,16 +10,62 @@ from composer.metrics import CrossEntropy
 from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 
-from sample.pytorch.py_arch.base import BaseCfg, Residual, ConvMixerLayer, BaseModule
 # from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
-from sample.pytorch.py_arch.foldnet import LKA, Atten, FoldBlock
+class LKA(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.conv0 = nn.Conv2d(dim, dim, 5, padding=2, groups=dim)
+        self.conv_spatial = nn.Conv2d(dim, dim, 7, stride=1, padding=9, groups=dim, dilation=3)
+        self.conv1 = nn.Conv2d(dim, dim, 1)
 
-
+    def forward(self, x):
+        u = x.clone()
+        attn = self.conv0(x)
+        attn = self.conv_spatial(attn)
+        attn = self.conv1(attn)
+        return attn * u
+class Atten(nn.Sequential):
+    def __init__(self, dim, drop_rate):
+        super().__init__(
+            nn.Conv2d(dim, dim, 1),
+            nn.GELU(), 
+            LKA(dim),
+            nn.Dropout(drop_rate),
+            nn.Conv2d(dim, dim, 1),
+            # nn.Dropout(drop_rate),
+        )
+class FoldBlock(nn.Module):
+    "Basic block of folded ResNet"
+    def __init__(self, fold_num:int, Unit:nn.Module, *args, **kwargs):  # , hidden_dim: int, kernel_size: int, drop_rate:float=0.
+        super(FoldBlock, self).__init__()
+        self.fold_num = fold_num
+        units = []
+        for i in range(max(1, fold_num - 1)):
+            units += [Unit(*args, **kwargs)]
+        self.units = nn.ModuleList(units)
+        
+    def forward(self, *xs):
+        xs = list(xs)
+        if self.fold_num == 1:
+            xs[0] = xs[0] + self.units[0](xs[0])
+            # xs[0] = xs[0] * self.units[0](xs[0])
+            return xs
+        for i in range(self.fold_num - 1):
+            xs[i+1] = xs[i+1] + self.units[i](xs[i])
+        xs.reverse()
+        return xs
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     # target = torch.argmax(target, dim=1)
     return F.nll_loss(input, target)
     # return - (input * target).mean()
 
+class Residual(nn.Module):
+    def __init__(self, fn):
+        super().__init__()
+        self.fn = fn
+
+    def forward(self, x):
+        return self.fn(x) + x
 
 class FoldNet(nn.Module):
     def __init__(self, fold_num: int, hidden_dim: int,num_layers: int, patch_size: int, num_classes: int, drop_rate: float=0.1):
