@@ -12,20 +12,20 @@ from torchmetrics import Accuracy, MetricCollection
 
 # from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
 class LKA(nn.Module):
-    def __init__(self, dim):
+    def __init__(self, dim: int):
         super().__init__()
         self.conv0 = nn.Conv2d(dim, dim, 5, padding=2, groups=dim)
         self.conv_spatial = nn.Conv2d(dim, dim, 7, stride=1, padding=9, groups=dim, dilation=3)
         self.conv1 = nn.Conv2d(dim, dim, 1)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor)-> torch.Tensor:
         u = x.clone()
         attn = self.conv0(x)
         attn = self.conv_spatial(attn)
         attn = self.conv1(attn)
         return attn * u
 class Atten(nn.Sequential):
-    def __init__(self, dim, drop_rate):
+    def __init__(self, dim: int, drop_rate: float):
         super().__init__(
             nn.Conv2d(dim, dim, 1),
             nn.GELU(), 
@@ -44,7 +44,7 @@ class FoldBlock(nn.Module):
             units += [Unit(*args, **kwargs)]
         self.units = nn.ModuleList(units)
         
-    def forward(self, *xs):
+    def forward(self, *xs: torch.Tensor)-> torch.Tensor:
         xs = list(xs)
         if self.fold_num == 1:
             xs[0] = xs[0] + self.units[0](xs[0])
@@ -64,7 +64,7 @@ class Residual(nn.Module):
         super().__init__()
         self.fn = fn
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor)-> torch.Tensor:
         return self.fn(x) + x
 
 class FoldNet(nn.Module):
