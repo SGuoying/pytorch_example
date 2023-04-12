@@ -10,9 +10,9 @@ from composer.metrics import CrossEntropy
 from composer.models import ComposerClassifier
 from torchmetrics import Accuracy, MetricCollection
 
-from sunyata.pytorch.arch.base import Residual
+from sample.pytorch.py_arch.base import BaseCfg, Residual, ConvMixerLayer, BaseModule
 # from sunyata.pytorch.arch.bayes.core import log_bayesian_iteration
-from sunyata.pytorch.arch.deit import vit_models, bayes_vit_models
+from sample.pytorch.py_arch.foldnet import LKA, Atten, FoldBlock
 
 
 def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -20,6 +20,48 @@ def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     return F.nll_loss(input, target)
     # return - (input * target).mean()
 
+
+class FoldNet(nn.Module):
+    def __init__(self, fold_num: int, hidden_dim: int,num_layers: int, patch_size: int, num_classes: int, drop_rate: float=0.1):
+        super().__init__()
+        self.layers = nn.ModuleList([
+                FoldBlock(fold_num, Atten, hidden_dim, drop_rate)
+                for _ in range(num_layers)
+            ])
+        
+        self.embed = nn.Sequential(
+            nn.Conv2d(3, hidden_dim, kernel_size=patch_size, stride=patch_size),
+            nn.GELU(),
+            nn.BatchNorm2d(hidden_dim, eps=7e-5),
+        )
+
+        self.digup = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1,1)),
+            nn.Flatten(),
+            nn.Linear(hidden_dim, num_classes)
+        )
+        self.fold_num = fold_num
+
+    def forward(self, x: torch.Tensor)-> torch.Tensor:
+        x = self.embed(x)
+        xs = [x for _ in range(self.fold_num)]
+        for layer in self.layers:
+            xs= layer(*xs)
+        x = xs[-1]
+        x = self.digup(x)
+        return x
+
+class FoldNetRepeat2(FoldNet):
+    def forward(self, x: torch.Tensor)-> torch.Tensor:
+        x = self.embed(x)
+        xs = x.repeat(1, self.fold_num, 1, 1)
+        xs = torch.chunk(xs, self.fold_num, dim = 1)
+        for layer in self.layers:
+            xs = layer(*xs)
+        x = xs[-1]
+        x = self.digup(x)
+        return x
+    
 
 class ConvMixer(nn.Module):
     def __init__(
@@ -155,7 +197,9 @@ def build_composer_resnet(
     kernel_size: int,
     patch_size: int,
     num_layers: int,
-    num_classes: int = 1000    
+    fold_num: int,
+    num_classes: int = 1000,
+    drop_rate: float=0.1    
 ):
     """Helper function to build a Composer ResNet model.
 
@@ -168,10 +212,10 @@ def build_composer_resnet(
         model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     elif model_name == 'convmixer-bayes-2':
         model = BayesConvMixer2(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-    elif model_name == 'vit_models':
-        model = vit_models(img_size=64, patch_size=patch_size, num_classes=num_classes, embed_dim=hidden_dim, depth=num_layers, num_heads=hidden_dim//64)
-    elif model_name == 'bayes_vit_models':
-        model = bayes_vit_models(img_size=64, patch_size=patch_size, num_classes=num_classes, embed_dim=hidden_dim, depth=num_layers, num_heads=hidden_dim//64)
+    elif model_name == 'FoldNet':
+        model = FoldNet(fold_num, hidden_dim,num_layers, patch_size, num_classes, drop_rate)
+    elif model_name == 'FoldNetRepeat2':
+        model = FoldNetRepeat2(fold_num, hidden_dim,num_layers, patch_size, num_classes, drop_rate)
     else:
         raise ValueError("Only support convmixer and convmixer-bayes till now.")
 

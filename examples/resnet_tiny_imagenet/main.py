@@ -100,6 +100,8 @@ def main(cfg: DictConfig):
         patch_size=cfg.model.patch_size,
         num_layers=cfg.model.num_layers,
         num_classes=cfg.model.num_classes,
+        fold_num=cfg.model.fold_num, 
+        drop_rate=cfg.model.drop_rate
     )
     print('Built Composer model\n')
 
