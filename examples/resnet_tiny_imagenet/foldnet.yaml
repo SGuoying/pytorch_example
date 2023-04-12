@@ -48,7 +48,7 @@ optimizer:
   - 0.9
   - 0.95
   eps: 1.0e-08
-  weight_decay: 0.05
+  weight_decay: 0.0
 
 # LR Scheduler Parameters
 scheduler:
@@ -59,7 +59,7 @@ loggers:
   progress_bar: {}
   wandb:     # Uncomment and fill below arguments to use WandB logger
     entity: sunguoying # Name of WandB entity, usually username or organization name
-    project: foldnet # Name of WandB project
+    project: cifar10 # Name of WandB project
     group:   # Name of WandB group
 
 # null for baseline or for recipe, either ["mild", "medium", "hot"] in order of increasing training time and accuracy
