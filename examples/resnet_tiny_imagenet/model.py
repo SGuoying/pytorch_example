@@ -98,6 +98,9 @@ class FoldNet(nn.Module):
         return x
 
 class FoldNetRepeat2(FoldNet):
+    def __init__(self, fold_num: int, hidden_dim: int, num_layers: int, patch_size: int, num_classes: int, drop_rate: float = 0.1):
+        super().__init__(fold_num, hidden_dim, num_layers, patch_size, num_classes, drop_rate)
+        
     def forward(self, x: torch.Tensor)-> torch.Tensor:
         x = self.embed(x)
         xs = x.repeat(1, self.fold_num, 1, 1)
@@ -108,7 +111,6 @@ class FoldNetRepeat2(FoldNet):
         x = self.digup(x)
         return x
     
-
 class ConvMixer(nn.Module):
     def __init__(
         self,
@@ -150,43 +152,6 @@ class ConvMixer(nn.Module):
         x= self.layers(x)
         x= self.digup(x)
         return x
-
-
-class BayesConvMixer(ConvMixer):
-    def __init__(
-        self,
-        hidden_dim: int,
-        kernel_size: int,
-        patch_size: int,
-        num_layers: int,
-        num_classes: int,
-    ):
-        super().__init__(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-
-        log_prior = torch.zeros(1, num_classes)
-        # log_prior = - torch.log(torch.ones(1, num_classes) * num_classes)
-        self.register_buffer('log_prior', log_prior) 
-        # self.log_prior = nn.Parameter(torch.zeros(1, num_classes))
-        # self.sqrt_num_classes = sqrt(num_classes)
-        # self.logits_bias = nn.Parameter(torch.zeros(1, num_classes))
-        # self.logits_layer_norm = nn.LayerNorm(num_classes)
-        self.num_classes = num_classes
-
-    def forward(self, x: torch.Tensor):
-        batch_size, _, _, _ = x.shape
-        log_prior = self.log_prior.repeat(batch_size, 1)
-
-        x = self.embed(x)
-        for layer in self.layers:
-            x = layer(x)
-            logits = self.digup(x) 
-            log_prior = log_prior + logits
-            # log_prior = self.logits_layer_norm(log_prior)
-            # log_prior = log_prior - torch.mean(log_prior, dim=-1, keepdim=True) + self.logits_bias
-            log_prior = F.log_softmax(log_prior, dim=-1) # log_bayesian_iteration(log_prior, logits)
-            log_prior = log_prior + math.log(self.num_classes)
-        return log_prior
-
 
 class BayesConvMixer2(ConvMixer):
     def __init__(
