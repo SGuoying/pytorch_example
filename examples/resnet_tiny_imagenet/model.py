@@ -60,7 +60,7 @@ def nll_loss(input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     # return - (input * target).mean()
 
 class Residual(nn.Module):
-    def __init__(self, fn):
+    def __init__(self, fn:nn.Module):
         super().__init__()
         self.fn = fn
 
@@ -74,6 +74,11 @@ class FoldNet(nn.Module):
                 FoldBlock(fold_num, Atten, hidden_dim, drop_rate)
                 for _ in range(num_layers)
             ])
+        # if block == Atten:
+        #     self.layers = nn.ModuleList([
+        #         FoldBlock(fold_num, block, hidden_dim, drop_rate)
+        #         for _ in range(num_layers)
+        #     ])
         
         self.embed = nn.Sequential(
             nn.Conv2d(3, hidden_dim, kernel_size=patch_size, stride=patch_size),
@@ -100,7 +105,7 @@ class FoldNet(nn.Module):
 class FoldNetRepeat2(FoldNet):
     def __init__(self, fold_num: int, hidden_dim: int, num_layers: int, patch_size: int, num_classes: int, drop_rate: float = 0.1):
         super().__init__(fold_num, hidden_dim, num_layers, patch_size, num_classes, drop_rate)
-        
+
     def forward(self, x: torch.Tensor)-> torch.Tensor:
         x = self.embed(x)
         xs = x.repeat(1, self.fold_num, 1, 1)
@@ -202,7 +207,7 @@ class BayesConvMixer2(ConvMixer):
 
 def build_composer_resnet(
     *,
-    model_name: str = 'convmixer',
+    model_name: str = 'FoldNet',
     loss_name: str = "nll_loss",
     hidden_dim: int,
     kernel_size: int,
@@ -219,8 +224,6 @@ def build_composer_resnet(
     """
     if model_name == 'convmixer':
         model = ConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
-    elif model_name == 'convmixer-bayes':
-        model = BayesConvMixer(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     elif model_name == 'convmixer-bayes-2':
         model = BayesConvMixer2(hidden_dim, kernel_size, patch_size, num_layers, num_classes)
     elif model_name == 'FoldNet':

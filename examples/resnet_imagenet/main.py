@@ -16,11 +16,13 @@ from composer.callbacks import LRMonitor, MemoryMonitor, SpeedMonitor
 from composer.loggers import ProgressBarLogger, WandBLogger
 from composer.optim import CosineAnnealingWithWarmupScheduler, DecoupledSGDW
 from composer.utils import dist, reproducibility
-from data import build_imagenet_dataspec
-from model import build_composer_resnet
+# from data import build_imagenet_dataspec
+# from model import build_composer_resnet
 from omegaconf import OmegaConf
 
 from examples.common.config_utils import log_config
+from examples.resnet_imagenet.data import build_imagenet_dataspec
+from examples.resnet_imagenet.model import build_composer_resnet
 
 
 def build_logger(name: str, kwargs: Dict):
@@ -46,7 +48,9 @@ def main(config):
                 f'recipe_name={config.recipe_name}, but must be one of ["mild", "medium", "hot"]'
             )
         recipe_config = config[config.recipe_name]
-        config.update(recipe_config)
+        # config.update(recipe_config)
+        for key, value in recipe_config.items():
+            OmegaConf.update(config, key, value)
 
     # Divide batch sizes by number of devices if running multi-gpu training
     train_batch_size = config.train_dataset.batch_size
@@ -67,7 +71,7 @@ def main(config):
         shuffle=True,
         resize_size=config.train_dataset.resize_size,
         crop_size=config.train_dataset.crop_size,
-        num_workers=config.train_dataset.num_workers,
+        num_workers=4,
         pin_memory=True,
         persistent_workers=True)
 
@@ -85,7 +89,7 @@ def main(config):
         shuffle=False,
         resize_size=config.eval_dataset.resize_size,
         crop_size=config.eval_dataset.crop_size,
-        num_workers=config.eval_dataset.num_workers,
+        num_workers=4,
         pin_memory=True,
         persistent_workers=True)
     print('Built evaluation dataloader\n')
@@ -125,13 +129,13 @@ def main(config):
     print('Building algorithm recipes')
     if config.recipe_name == 'mild':
         algorithms = [
-            # BlurPool(),
+            BlurPool(),
             ChannelsLast(),
-            # EMA(half_life='100ba', update_interval='20ba'),
-            # ProgressiveResizing(initial_scale=0.5,
-            #                     delay_fraction=0.4,
-            #                     finetune_fraction=0.2),
-            # LabelSmoothing(smoothing=0.08),
+            EMA(half_life='100ba', update_interval='20ba'),
+            ProgressiveResizing(initial_scale=0.5,
+                                delay_fraction=0.4,
+                                finetune_fraction=0.2),
+            LabelSmoothing(smoothing=0.08),
         ]
     elif config.recipe_name == 'medium':
         algorithms = [
@@ -196,7 +200,8 @@ def main(config):
         device=device,
         precision=precision,
         grad_accum=config.grad_accum,
-        seed=config.seed)
+        seed=config.seed,
+        python_log_level=config.get('python_log_level', None),)
     print('Built Trainer\n')
 
     print('Logging config')

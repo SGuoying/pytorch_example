@@ -6,7 +6,7 @@ grad_accum: 2           # Amount of gradient accumulation, 'auto' means Composer
 
 # Model
 model:
-  name: foldnet           # Name of the ResNet model to train either resnet{18, 34, 50, 101, 152}
+  name: FoldNetRepeat2           # Name of the ResNet model to train either resnet{18, 34, 50, 101, 152}
   hidden_dim: 256
   kernel_size: 5
   patch_size: 2
